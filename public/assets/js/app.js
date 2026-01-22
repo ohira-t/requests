@@ -719,21 +719,8 @@ class App {
         return column;
     }
 
-    async addCategoryFromBoard() {
-        const name = prompt('カテゴリー名を入力してください:');
-        if (!name) return;
-
-        const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-
-        try {
-            await api.createCategory({ name, color });
-            await this.loadCategories();
-            await this.loadTasks();
-            this.updateCategoryDropdowns();
-            this.showToast('カテゴリーを追加しました', 'success');
-        } catch (error) {
-            this.showToast(error.message, 'error');
-        }
+    addCategoryFromBoard() {
+        this.openEditCategoryModal(null);
     }
 
     renderAssigneeColumns(container) {
@@ -1632,13 +1619,28 @@ class App {
         });
     }
 
-    openEditCategoryModal(category) {
+    openEditCategoryModal(category = null) {
         const modal = document.getElementById('category-edit-modal');
-        document.getElementById('category-edit-id').value = category.id;
-        document.getElementById('category-edit-name').value = category.name;
-        document.getElementById('category-edit-title').textContent = 'カテゴリーを編集';
+        const isNew = !category;
+        
+        document.getElementById('category-edit-id').value = category?.id || '';
+        document.getElementById('category-edit-name').value = category?.name || '';
+        document.getElementById('category-edit-title').textContent = isNew ? 'カテゴリーを追加' : 'カテゴリーを編集';
+        
+        // Set color
+        const color = category?.color || '#007AFF';
+        document.getElementById('category-edit-color').value = color;
+        this.selectCategoryColor(color);
+        
         modal.style.display = 'flex';
         document.getElementById('category-edit-name').focus();
+    }
+
+    selectCategoryColor(color) {
+        document.querySelectorAll('#category-color-picker .color-option').forEach(btn => {
+            btn.classList.toggle('selected', btn.dataset.color === color);
+        });
+        document.getElementById('category-edit-color').value = color;
     }
 
     closeCategoryEditModal() {
@@ -1650,6 +1652,7 @@ class App {
         const form = document.getElementById('category-edit-form');
         const closeBtn = document.getElementById('category-edit-close');
         const cancelBtn = document.getElementById('category-edit-cancel');
+        const colorPicker = document.getElementById('category-color-picker');
 
         closeBtn?.addEventListener('click', () => this.closeCategoryEditModal());
         cancelBtn?.addEventListener('click', () => this.closeCategoryEditModal());
@@ -1658,12 +1661,26 @@ class App {
             if (e.target === modal) this.closeCategoryEditModal();
         });
 
+        // Color picker
+        colorPicker?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.color-option');
+            if (btn) {
+                this.selectCategoryColor(btn.dataset.color);
+            }
+        });
+
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = parseInt(document.getElementById('category-edit-id').value);
+            const id = document.getElementById('category-edit-id').value;
             const name = document.getElementById('category-edit-name').value.trim();
+            const color = document.getElementById('category-edit-color').value;
+            
             if (name) {
-                await this.updateCategory(id, name);
+                if (id) {
+                    await this.updateCategory(parseInt(id), name, color);
+                } else {
+                    await this.createCategory(name, color);
+                }
                 this.closeCategoryEditModal();
             }
         });
@@ -1785,14 +1802,27 @@ class App {
         }
     }
 
-    async updateCategory(id, name) {
+    async updateCategory(id, name, color) {
         try {
-            await api.updateCategory(id, { name });
+            await api.updateCategory(id, { name, color });
             await this.loadCategories();
             this.renderCategoryList();
             this.updateCategoryDropdowns();
             this.loadTasks();
             this.showToast('カテゴリーを更新しました', 'success');
+        } catch (error) {
+            this.showToast(error.message, 'error');
+        }
+    }
+
+    async createCategory(name, color) {
+        try {
+            await api.createCategory({ name, color });
+            await this.loadCategories();
+            this.renderCategoryList();
+            this.updateCategoryDropdowns();
+            this.loadTasks();
+            this.showToast('カテゴリーを追加しました', 'success');
         } catch (error) {
             this.showToast(error.message, 'error');
         }
@@ -1888,20 +1918,8 @@ class App {
         }
     }
 
-    async addCategory() {
-        const name = prompt('カテゴリー名を入力してください:');
-        if (!name) return;
-
-        const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-
-        try {
-            await api.createCategory({ name, color });
-            await this.loadCategories();
-            this.renderCategoryList();
-            this.showToast('カテゴリーを追加しました', 'success');
-        } catch (error) {
-            this.showToast(error.message, 'error');
-        }
+    addCategory() {
+        this.openEditCategoryModal(null);
     }
 
     async deleteCategory(id) {
