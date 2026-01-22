@@ -31,22 +31,24 @@ CREATE TABLE IF NOT EXISTS categories (
 -- Tasks table
 CREATE TABLE IF NOT EXISTS tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id TEXT UNIQUE,
     title TEXT NOT NULL,
     description TEXT,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'review', 'completed', 'cancelled')),
+    status TEXT NOT NULL DEFAULT 'todo' CHECK (status IN ('backlog', 'todo', 'in_progress', 'done', 'cancelled')),
     priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     due_date DATE,
     category_id INTEGER,
     assignee_id INTEGER,
-    requester_id INTEGER,
-    created_by INTEGER,
+    creator_id INTEGER,
+    tags TEXT,
+    display_order INTEGER DEFAULT 0,
+    completed_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME,
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (assignee_id) REFERENCES users(id),
-    FOREIGN KEY (requester_id) REFERENCES users(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
+    FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
 -- Comments table

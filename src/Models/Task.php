@@ -292,12 +292,23 @@ class Task
         $year = date('y');
         $month = date('m');
         
-        $result = Database::fetch(
-            "SELECT MAX(CAST(SUBSTRING(ticket_id, 8) AS UNSIGNED)) as max_num 
-             FROM tasks 
-             WHERE ticket_id LIKE ?",
-            [$prefix . $year . $month . '%']
-        );
+        // SQLite compatible: use SUBSTR instead of SUBSTRING, CAST AS INTEGER instead of UNSIGNED
+        $driver = Database::getDriver();
+        if ($driver === 'sqlite') {
+            $result = Database::fetch(
+                "SELECT MAX(CAST(SUBSTR(ticket_id, 8) AS INTEGER)) as max_num 
+                 FROM tasks 
+                 WHERE ticket_id LIKE ?",
+                [$prefix . $year . $month . '%']
+            );
+        } else {
+            $result = Database::fetch(
+                "SELECT MAX(CAST(SUBSTRING(ticket_id, 8) AS UNSIGNED)) as max_num 
+                 FROM tasks 
+                 WHERE ticket_id LIKE ?",
+                [$prefix . $year . $month . '%']
+            );
+        }
         
         $nextNum = ($result['max_num'] ?? 0) + 1;
         
@@ -498,6 +509,9 @@ class Task
     
     public static function getStats(array $filters = []): array
     {
+        // SQLite uses date('now'), MySQL uses CURDATE()
+        $today = Database::getDriver() === 'sqlite' ? "date('now')" : "CURDATE()";
+        
         $sql = "SELECT 
                     COUNT(*) as total,
                     SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as completed,
@@ -509,7 +523,7 @@ class Task
                     SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) as high,
                     SUM(CASE WHEN priority = 'medium' THEN 1 ELSE 0 END) as medium,
                     SUM(CASE WHEN priority = 'low' THEN 1 ELSE 0 END) as low,
-                    SUM(CASE WHEN due_date < CURDATE() AND status != 'done' AND status != 'cancelled' THEN 1 ELSE 0 END) as overdue
+                    SUM(CASE WHEN due_date < {$today} AND status != 'done' AND status != 'cancelled' THEN 1 ELSE 0 END) as overdue
                 FROM tasks
                 WHERE deleted_at IS NULL";
         $params = [];
