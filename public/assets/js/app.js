@@ -531,8 +531,21 @@ class App {
             this.tasks = result.data;
             this.renderBoard();
         } catch (error) {
-            container.innerHTML = `<div class="empty-state"><p>タスクの取得に失敗しました</p></div>`;
-            this.showToast('タスクの取得に失敗しました', 'error');
+            console.error('[App] Failed to load tasks:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <h3>読み込みに失敗しました</h3>
+                    <p>ページを再読み込みしてお試しください</p>
+                    <button class="btn btn-secondary" onclick="location.reload()" style="margin-top: var(--spacing-lg);">
+                        再読み込み
+                    </button>
+                </div>
+            `;
         }
     }
 
@@ -676,6 +689,23 @@ class App {
     }
 
     renderCategoryColumns(container) {
+        // Check if tasks is empty or not an object
+        if (!this.tasks || typeof this.tasks !== 'object' || Object.keys(this.tasks).length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <h3>ようこそ Requests へ！</h3>
+                    <p>右上の「＋ 新規タスク」からタスクを作成してみましょう</p>
+                    <p style="margin-top: var(--spacing-md); color: var(--color-text-secondary); font-size: var(--font-size-sm);">
+                        💡 ヒント: まず⚙️設定からカテゴリーを作成すると、タスクを整理しやすくなります
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
         // Sort categories by display_order
         const sortedGroups = Object.values(this.tasks).sort((a, b) => {
             const orderA = a.category?.display_order ?? 999;
@@ -2106,8 +2136,10 @@ class App {
             this.calendarTasks = result.data;
             this.renderCalendarView();
         } catch (error) {
-            const container = document.getElementById('board-container');
-            container.innerHTML = `<div class="empty-state"><p>カレンダーの取得に失敗しました</p></div>`;
+            console.error('[App] Failed to load calendar:', error);
+            // Show empty calendar instead of error
+            this.calendarTasks = [];
+            this.renderCalendarView();
         }
     }
 
@@ -2347,9 +2379,10 @@ class App {
             this.stats = result.data;
             this.renderStatsView();
         } catch (error) {
-            const container = document.getElementById('board-container');
-            container.innerHTML = `<div class="empty-state"><p>統計情報の取得に失敗しました</p></div>`;
-            this.showToast('統計情報の取得に失敗しました', 'error');
+            console.error('[App] Failed to load stats:', error);
+            // Show empty stats
+            this.stats = { total: 0, completed: 0, in_progress: 0, todo: 0, backlog: 0, cancelled: 0, urgent: 0, high: 0, medium: 0, low: 0, overdue: 0, completion_rate: 0, recent_tasks: [] };
+            this.renderStatsView();
         }
     }
 
