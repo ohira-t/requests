@@ -2,6 +2,9 @@
     RewriteEngine On
     RewriteBase /requests/
     
+    # Debug: Test rewrite rule
+    RewriteRule ^rewrite-test$ test-rewrite.php [L]
+    
     # Redirect to HTTPS (enable in production)
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
