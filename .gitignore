@@ -40,3 +40,7 @@ logs/
 
 # Local development
 *.local.php
+
+# SQLite database
+database/*.sqlite
+database/*.sqlite-journal

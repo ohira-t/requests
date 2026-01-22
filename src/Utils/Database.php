@@ -8,37 +8,54 @@ use PDOException;
 class Database
 {
     private static ?PDO $instance = null;
+    private static string $driver = 'mysql';
     
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
             $config = require __DIR__ . '/../Config/database.php';
+            self::$driver = $config['driver'];
             
             try {
-                $dsn = sprintf(
-                    '%s:host=%s;port=%s;dbname=%s;charset=%s',
-                    $config['driver'],
-                    $config['host'],
-                    $config['port'],
-                    $config['database'],
-                    $config['charset']
-                );
-                
-                self::$instance = new PDO(
-                    $dsn,
-                    $config['username'],
-                    $config['password'],
-                    $config['options']
-                );
+                if ($config['driver'] === 'sqlite') {
+                    $dsn = 'sqlite:' . $config['database'];
+                    self::$instance = new PDO($dsn, null, null, [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    ]);
+                    // Enable foreign keys for SQLite
+                    self::$instance->exec('PRAGMA foreign_keys = ON');
+                } else {
+                    $dsn = sprintf(
+                        '%s:host=%s;port=%s;dbname=%s;charset=%s',
+                        $config['driver'],
+                        $config['host'],
+                        $config['port'],
+                        $config['database'],
+                        $config['charset']
+                    );
+                    
+                    self::$instance = new PDO(
+                        $dsn,
+                        $config['username'],
+                        $config['password'],
+                        $config['options']
+                    );
+                }
             } catch (PDOException $e) {
-                if (($_ENV['APP_DEBUG'] ?? false)) {
+                if (($_ENV['APP_DEBUG'] ?? false) === 'true') {
                     throw $e;
                 }
-                throw new PDOException('Database connection failed');
+                throw new PDOException('Database connection failed: ' . $e->getMessage());
             }
         }
         
         return self::$instance;
+    }
+    
+    public static function getDriver(): string
+    {
+        return self::$driver;
     }
     
     public static function query(string $sql, array $params = []): \PDOStatement
@@ -88,7 +105,8 @@ class Database
     
     public static function softDelete(string $table, string $where, array $params = []): int
     {
-        $sql = "UPDATE {$table} SET deleted_at = NOW() WHERE {$where}";
+        $now = self::$driver === 'sqlite' ? "datetime('now')" : "NOW()";
+        $sql = "UPDATE {$table} SET deleted_at = {$now} WHERE {$where}";
         $stmt = self::query($sql, $params);
         return $stmt->rowCount();
     }

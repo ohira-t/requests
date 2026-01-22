@@ -1,5 +1,14 @@
 <?php
 
+$driver = $_ENV['DB_DRIVER'] ?? 'mysql';
+
+if ($driver === 'sqlite') {
+    return [
+        'driver' => 'sqlite',
+        'database' => $_ENV['DB_DATABASE'] ?? dirname(__DIR__, 2) . '/database/database.sqlite',
+    ];
+}
+
 return [
     'driver' => 'mysql',
     'host' => $_ENV['DB_HOST'] ?? 'localhost',
