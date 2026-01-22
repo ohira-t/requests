@@ -55,6 +55,11 @@ class Database
     
     public static function getDriver(): string
     {
+        // Ensure driver is loaded from config
+        if (self::$instance === null) {
+            $config = require __DIR__ . '/../Config/database.php';
+            self::$driver = $config['driver'];
+        }
         return self::$driver;
     }
     
