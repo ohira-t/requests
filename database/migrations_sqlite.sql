@@ -83,10 +83,12 @@ CREATE TABLE IF NOT EXISTS notifications (
     title TEXT NOT NULL,
     message TEXT,
     task_id INTEGER,
+    related_user_id INTEGER,
     is_read INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (task_id) REFERENCES tasks(id)
+    FOREIGN KEY (task_id) REFERENCES tasks(id),
+    FOREIGN KEY (related_user_id) REFERENCES users(id)
 );
 
 -- Create indexes
