@@ -501,6 +501,19 @@ class App {
                 return;
             }
 
+            if (this.currentView === 'calendar') {
+                await this.loadCalendar();
+                return;
+            }
+
+            // For "requested" view, use the workload endpoint
+            if (this.currentView === 'requested' && this.user?.role !== 'client') {
+                const result = await api.getRequestedWithWorkload();
+                this.tasks = result.data;
+                this.renderRequestedWithWorkload();
+                return;
+            }
+
             const params = { view: this.currentView };
 
             // クライアントはフラットなリスト（グループ化なし）
@@ -508,8 +521,6 @@ class App {
                 // グループ化パラメータを送らない
             } else if (this.currentView === 'my') {
                 params.grouped = 'category';
-            } else if (this.currentView === 'requested') {
-                params.grouped = 'assignee';
             } else if (this.currentView === 'clients') {
                 params.grouped = 'client';
             } else if (this.currentView === 'department') {
@@ -2069,6 +2080,264 @@ class App {
         if (dropdown && dropdown.style.display !== 'none') {
             this.renderAssigneeList();
         }
+    }
+
+    // Calendar View
+    async loadCalendar() {
+        if (!this.calendarDate) {
+            this.calendarDate = new Date();
+        }
+        
+        const year = this.calendarDate.getFullYear();
+        const month = this.calendarDate.getMonth();
+        
+        const startDate = new Date(year, month, 1);
+        const endDate = new Date(year, month + 1, 0);
+        
+        // Extend to show days from previous/next month
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+        endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+        
+        const startStr = startDate.toISOString().split('T')[0];
+        const endStr = endDate.toISOString().split('T')[0];
+        
+        try {
+            const result = await api.getCalendarTasks(startStr, endStr);
+            this.calendarTasks = result.data;
+            this.renderCalendarView();
+        } catch (error) {
+            const container = document.getElementById('board-container');
+            container.innerHTML = `<div class="empty-state"><p>カレンダーの取得に失敗しました</p></div>`;
+        }
+    }
+
+    renderCalendarView() {
+        const container = document.getElementById('board-container');
+        const year = this.calendarDate.getFullYear();
+        const month = this.calendarDate.getMonth();
+        const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startOffset = firstDay.getDay();
+        const daysInMonth = lastDay.getDate();
+        
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        // Group tasks by date
+        const tasksByDate = {};
+        (this.calendarTasks || []).forEach(task => {
+            const date = task.due_date;
+            if (!tasksByDate[date]) tasksByDate[date] = [];
+            tasksByDate[date].push(task);
+        });
+        
+        // Generate calendar days
+        let daysHtml = '';
+        const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+        
+        for (let i = 0; i < totalCells; i++) {
+            const dayNum = i - startOffset + 1;
+            const isOtherMonth = dayNum < 1 || dayNum > daysInMonth;
+            
+            let displayDate;
+            if (dayNum < 1) {
+                const prevMonth = new Date(year, month, dayNum);
+                displayDate = prevMonth;
+            } else if (dayNum > daysInMonth) {
+                const nextMonth = new Date(year, month, dayNum);
+                displayDate = nextMonth;
+            } else {
+                displayDate = new Date(year, month, dayNum);
+            }
+            
+            const dateStr = displayDate.toISOString().split('T')[0];
+            const isToday = dateStr === todayStr;
+            const dayTasks = tasksByDate[dateStr] || [];
+            
+            const classes = ['calendar-day'];
+            if (isOtherMonth) classes.push('other-month');
+            if (isToday) classes.push('today');
+            
+            const tasksHtml = dayTasks.slice(0, 3).map(task => {
+                const isOverdue = task.due_date < todayStr && task.status !== 'done';
+                const taskClass = isOverdue ? 'overdue' : (task.is_my_task ? 'my-task' : 'my-request');
+                return `<div class="calendar-task ${taskClass}" data-task-id="${task.id}" title="${escapeHtml(task.title)}">${escapeHtml(task.title)}</div>`;
+            }).join('');
+            
+            const moreHtml = dayTasks.length > 3 
+                ? `<div class="calendar-task-more">+${dayTasks.length - 3}件</div>` 
+                : '';
+            
+            daysHtml += `
+                <div class="${classes.join(' ')}" data-date="${dateStr}">
+                    <div class="day-number">${displayDate.getDate()}</div>
+                    <div class="day-tasks">${tasksHtml}${moreHtml}</div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = `
+            <div class="calendar-view">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" id="calendar-prev">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"/>
+                            </svg>
+                        </button>
+                        <h2 class="calendar-title">${year}年 ${monthNames[month]}</h2>
+                        <button class="calendar-nav-btn" id="calendar-next">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="calendar-today-btn" id="calendar-today">今日</button>
+                </div>
+                
+                <div class="calendar-grid">
+                    <div class="calendar-weekdays">
+                        <div class="calendar-weekday">日</div>
+                        <div class="calendar-weekday">月</div>
+                        <div class="calendar-weekday">火</div>
+                        <div class="calendar-weekday">水</div>
+                        <div class="calendar-weekday">木</div>
+                        <div class="calendar-weekday">金</div>
+                        <div class="calendar-weekday">土</div>
+                    </div>
+                    <div class="calendar-days">${daysHtml}</div>
+                </div>
+                
+                <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-lg); font-size: var(--font-size-sm);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                        <span style="width: 12px; height: 12px; background: var(--color-primary); border-radius: 2px;"></span>
+                        自分のタスク
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                        <span style="width: 12px; height: 12px; background: var(--color-success); border-radius: 2px;"></span>
+                        依頼したタスク
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                        <span style="width: 12px; height: 12px; background: var(--color-danger); border-radius: 2px;"></span>
+                        期限切れ
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Event listeners
+        document.getElementById('calendar-prev')?.addEventListener('click', () => {
+            this.calendarDate.setMonth(this.calendarDate.getMonth() - 1);
+            this.loadCalendar();
+        });
+        
+        document.getElementById('calendar-next')?.addEventListener('click', () => {
+            this.calendarDate.setMonth(this.calendarDate.getMonth() + 1);
+            this.loadCalendar();
+        });
+        
+        document.getElementById('calendar-today')?.addEventListener('click', () => {
+            this.calendarDate = new Date();
+            this.loadCalendar();
+        });
+        
+        // Task click handlers
+        container.querySelectorAll('.calendar-task').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const taskId = parseInt(el.dataset.taskId);
+                const task = this.calendarTasks.find(t => t.id === taskId);
+                if (task) this.openTaskDetail(task);
+            });
+        });
+    }
+
+    // Requested View with Workload
+    renderRequestedWithWorkload() {
+        const container = document.getElementById('board-container');
+        const groupedData = this.tasks; // This is now { assigneeId: { assignee, my_tasks, others_tasks, ... } }
+        
+        if (!groupedData || Object.keys(groupedData).length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    <h3>依頼中のタスクはありません</h3>
+                    <p>他のメンバーにタスクを依頼すると、ここに表示されます</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = '<div class="board-columns"></div>';
+        const columnsContainer = container.querySelector('.board-columns');
+        
+        Object.values(groupedData).forEach(data => {
+            const column = this.createRequestedWorkloadColumn(data);
+            columnsContainer.appendChild(column);
+        });
+    }
+
+    createRequestedWorkloadColumn(data) {
+        const column = document.createElement('div');
+        column.className = 'board-column';
+        
+        const { assignee, my_tasks, others_tasks, my_task_count, others_task_count } = data;
+        const initials = assignee.name.charAt(0).toUpperCase();
+        const isClient = assignee.type === 'client';
+        const displayName = isClient && assignee.company ? assignee.company : assignee.name;
+        
+        column.innerHTML = `
+            <div class="column-header">
+                <div class="column-header-left">
+                    <span class="column-avatar ${isClient ? 'client' : ''}">${escapeHtml(initials)}</span>
+                    <span class="column-name">${escapeHtml(displayName)}</span>
+                    <span class="column-count">${my_task_count}</span>
+                    ${others_task_count > 0 ? `<span class="column-count" style="background: var(--color-text-disabled); color: white;" title="他の人からの依頼">+${others_task_count}</span>` : ''}
+                </div>
+            </div>
+            <div class="column-content"></div>
+        `;
+        
+        const content = column.querySelector('.column-content');
+        
+        // My tasks
+        my_tasks.forEach(task => {
+            const card = this.createTaskCard(task);
+            content.appendChild(card);
+        });
+        
+        // Others' tasks (if any)
+        if (others_tasks && others_tasks.length > 0) {
+            const othersSection = document.createElement('div');
+            othersSection.className = 'others-tasks-section';
+            othersSection.innerHTML = `
+                <div class="others-tasks-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    他の人からの依頼 (${others_tasks.length}件)
+                </div>
+            `;
+            
+            others_tasks.forEach(task => {
+                const card = this.createTaskCard(task);
+                card.classList.add('others-task');
+                card.style.position = 'relative';
+                othersSection.appendChild(card);
+            });
+            
+            content.appendChild(othersSection);
+        }
+        
+        return column;
     }
 
     // Stats

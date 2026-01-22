@@ -306,10 +306,49 @@ class TaskController
         // For clients, only show stats for their assigned tasks
         if ($user['role'] === 'client') {
             $filters['assignee_id'] = $user['id'];
+        } else {
+            // For staff, only show stats for tasks they're involved in
+            $filters['involved_user_id'] = $user['id'];
         }
         
         $stats = Task::getStats($filters);
         
         Response::success($stats);
+    }
+    
+    /**
+     * Get tasks I requested with assignee workload information
+     */
+    public function requestedWithWorkload(): void
+    {
+        $user = StaffMiddleware::handle();
+        if (!$user) return;
+        
+        $data = Task::getRequestedTasksWithAssigneeWorkload($user['id']);
+        
+        Response::success($data);
+    }
+    
+    /**
+     * Get tasks for calendar view
+     */
+    public function calendar(): void
+    {
+        $user = AuthMiddleware::handle();
+        if (!$user) return;
+        
+        $startDate = $_GET['start'] ?? date('Y-m-01');
+        $endDate = $_GET['end'] ?? date('Y-m-t');
+        
+        // Validate dates
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || 
+            !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
+            Response::error('INVALID_DATE', '日付の形式が不正です', 400);
+            return;
+        }
+        
+        $tasks = Task::getCalendarTasks($user['id'], $startDate, $endDate);
+        
+        Response::success($tasks);
     }
 }

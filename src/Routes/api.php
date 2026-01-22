@@ -110,6 +110,8 @@ function registerRoutes(): Router
     $router->get('/tasks', [$task, 'index']);
     $router->post('/tasks', [$task, 'store']);
     $router->get('/tasks/stats', [$task, 'stats']);  // Must be before {id} routes
+    $router->get('/tasks/requested-workload', [$task, 'requestedWithWorkload']);  // Must be before {id} routes
+    $router->get('/tasks/calendar', [$task, 'calendar']);  // Must be before {id} routes
     $router->put('/tasks/reorder', [$task, 'reorder']);  // Must be before {id} routes
     $router->get('/tasks/{id}', [$task, 'show']);
     $router->put('/tasks/{id}', [$task, 'update']);

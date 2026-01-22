@@ -167,6 +167,108 @@ class Task
         ]);
     }
     
+    /**
+     * Get tasks I requested, grouped by assignee, with their other tasks from other people
+     * This shows the workload of people I assigned tasks to
+     */
+    public static function getRequestedTasksWithAssigneeWorkload(int $userId): array
+    {
+        // Get my requested tasks (where I am the creator)
+        $myRequests = self::getAll([
+            'creator_id' => $userId,
+            'exclude_self_assigned' => true, // Exclude tasks I assigned to myself
+        ]);
+        
+        // Get unique assignee IDs from my requests
+        $assigneeIds = array_unique(array_filter(array_column($myRequests, 'assignee_id')));
+        
+        if (empty($assigneeIds)) {
+            return [];
+        }
+        
+        // Get all tasks assigned to those people (including from others)
+        $allAssigneeTasks = [];
+        foreach ($assigneeIds as $assigneeId) {
+            $allAssigneeTasks[$assigneeId] = self::getAll([
+                'assignee_id' => $assigneeId,
+                'exclude_done' => true, // Only show active tasks for workload
+            ]);
+        }
+        
+        // Group by assignee
+        $grouped = [];
+        foreach ($assigneeIds as $assigneeId) {
+            $assigneeTasks = $allAssigneeTasks[$assigneeId] ?? [];
+            $myTasks = [];
+            $othersTasks = [];
+            
+            foreach ($assigneeTasks as $task) {
+                if ($task['creator_id'] == $userId) {
+                    $myTasks[] = $task;
+                } else {
+                    $task['is_others_task'] = true; // Mark as other's task
+                    $othersTasks[] = $task;
+                }
+            }
+            
+            // Get assignee info from first task or fetch
+            $assignee = null;
+            if (!empty($assigneeTasks)) {
+                $assignee = [
+                    'id' => $assigneeId,
+                    'name' => $assigneeTasks[0]['assignee_name'],
+                    'email' => $assigneeTasks[0]['assignee_email'],
+                    'type' => $assigneeTasks[0]['assignee_type'] ?? 'internal',
+                    'company' => $assigneeTasks[0]['assignee_company'] ?? null,
+                ];
+            }
+            
+            if ($assignee) {
+                $grouped[$assigneeId] = [
+                    'assignee' => $assignee,
+                    'my_tasks' => $myTasks,
+                    'others_tasks' => $othersTasks,
+                    'my_task_count' => count($myTasks),
+                    'others_task_count' => count($othersTasks),
+                    'total_task_count' => count($myTasks) + count($othersTasks),
+                ];
+            }
+        }
+        
+        return $grouped;
+    }
+    
+    /**
+     * Get tasks for calendar view - tasks with due dates that involve the user
+     */
+    public static function getCalendarTasks(int $userId, string $startDate, string $endDate): array
+    {
+        $sql = "SELECT t.*, 
+                       c.name as creator_name, c.email as creator_email,
+                       a.name as assignee_name, a.email as assignee_email,
+                       cat.name as category_name, cat.color as category_color
+                FROM tasks t
+                LEFT JOIN users c ON t.creator_id = c.id
+                LEFT JOIN users a ON t.assignee_id = a.id
+                LEFT JOIN categories cat ON t.category_id = cat.id
+                WHERE t.deleted_at IS NULL
+                AND t.due_date IS NOT NULL
+                AND t.due_date >= ?
+                AND t.due_date <= ?
+                AND (t.creator_id = ? OR t.assignee_id = ?)
+                ORDER BY t.due_date ASC, t.priority DESC";
+        
+        $tasks = Database::fetchAll($sql, [$startDate, $endDate, $userId, $userId]);
+        
+        foreach ($tasks as &$task) {
+            $task['tags'] = json_decode($task['tags'] ?? '[]', true);
+            $task['is_my_task'] = ($task['assignee_id'] == $userId);
+            $task['is_my_request'] = ($task['creator_id'] == $userId && $task['assignee_id'] != $userId);
+        }
+        
+        return $tasks;
+    }
+    
     public static function getClientTasks(): array
     {
         return self::getAll(['assignee_type' => 'client']);
@@ -534,6 +636,13 @@ class Task
             $params[] = $filters['assignee_id'];
         }
         
+        // Filter by involved user (creator or assignee) for staff
+        if (!empty($filters['involved_user_id'])) {
+            $sql .= " AND (creator_id = ? OR assignee_id = ?)";
+            $params[] = $filters['involved_user_id'];
+            $params[] = $filters['involved_user_id'];
+        }
+        
         $stats = Database::fetch($sql, $params);
         
         // Calculate completion rate
@@ -558,6 +667,12 @@ class Task
         if (!empty($filters['assignee_id'])) {
             $recentSql .= " AND t.assignee_id = ?";
             $recentParams[] = $filters['assignee_id'];
+        }
+        
+        if (!empty($filters['involved_user_id'])) {
+            $recentSql .= " AND (t.creator_id = ? OR t.assignee_id = ?)";
+            $recentParams[] = $filters['involved_user_id'];
+            $recentParams[] = $filters['involved_user_id'];
         }
         
         $recentSql .= " AND t.status != 'done' AND t.status != 'cancelled'

@@ -171,6 +171,14 @@ class API {
         return this.get('/tasks/stats');
     }
 
+    async getRequestedWithWorkload() {
+        return this.get('/tasks/requested-workload');
+    }
+
+    async getCalendarTasks(startDate, endDate) {
+        return this.get(`/tasks/calendar?start=${startDate}&end=${endDate}`);
+    }
+
     // Comments
     async getComments(taskId) {
         return this.get(`/tasks/${taskId}/comments`);
