@@ -4,7 +4,21 @@
 
 class API {
     constructor() {
-        this.baseUrl = '/api';
+        // Detect base path from current location
+        // Handles both /requests/public/app.html and /requests/public/admin/users.html
+        let basePath = '';
+        const path = window.location.pathname;
+        
+        // Check if we're in a subdirectory deployment
+        const match = path.match(/^(\/[^\/]+\/public)/);
+        if (match) {
+            basePath = match[1];
+        } else if (path.includes('/public/')) {
+            // Handle case like /requests/public/admin/users.html
+            basePath = path.substring(0, path.indexOf('/public/') + '/public'.length);
+        }
+        
+        this.baseUrl = basePath + '/api';
         this.csrfToken = null;
     }
 

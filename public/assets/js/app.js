@@ -53,7 +53,9 @@ class App {
         // User menu
         document.getElementById('user-avatar-btn')?.addEventListener('click', () => this.toggleUserMenu());
         document.getElementById('admin-users-link')?.addEventListener('click', () => {
-            window.location.href = '/admin/users.html';
+            // Navigate to admin users page (relative to current path)
+            const basePath = window.location.pathname.replace(/\/[^\/]*$/, '');
+            window.location.href = basePath + '/admin/users.html';
         });
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
 

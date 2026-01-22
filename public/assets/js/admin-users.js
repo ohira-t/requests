@@ -28,14 +28,14 @@ class AdminUsers {
             this.user = result.data.user;
 
             if (this.user.role !== 'admin') {
-                window.location.href = '/app.html';
+                this.redirectToApp();
                 return;
             }
 
             document.getElementById('admin-user-name').textContent = this.user.name;
         } catch (error) {
             console.error('[AdminUsers] Auth check failed:', error);
-            window.location.href = '/app.html';
+            this.redirectToApp();
         }
     }
 
@@ -678,6 +678,12 @@ class AdminUsers {
             return '"' + str.replace(/"/g, '""') + '"';
         }
         return str;
+    }
+
+    redirectToApp() {
+        // Navigate to main app (relative to current path)
+        const basePath = window.location.pathname.replace(/\/admin\/[^\/]*$/, '');
+        window.location.href = basePath + '/app.html';
     }
 
     showToast(message, type = 'info') {
