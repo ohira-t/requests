@@ -668,6 +668,7 @@ a.dropdown-item {
     justify-content: center;
     min-height: 200px;
     transition: all var(--transition-fast);
+    cursor: pointer;
 }
 
 .add-category-column:hover {
@@ -679,11 +680,14 @@ a.dropdown-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: var(--spacing-md);
+    width: 100%;
+    height: 100%;
     padding: var(--spacing-xl);
     background: transparent;
     border: none;
-    cursor: pointer;
+    pointer-events: none;
     color: var(--color-text-secondary);
     font-family: var(--font-family);
     font-size: var(--font-size-sm);
