@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Models\User;
 use App\Middleware\AuthMiddleware;
-use App\Middleware\AdminMiddleware;
+use App\Middleware\StaffMiddleware;
 use App\Utils\Response;
 use App\Utils\Validator;
 
@@ -51,10 +51,16 @@ class UserController
     
     public function store(): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        // Staff cannot create admin users
+        if ($user['role'] !== 'admin' && isset($data['role']) && $data['role'] === 'admin') {
+            Response::forbidden('管理者ユーザーを作成する権限がありません');
+            return;
+        }
         
         $validator = Validator::make($data)
             ->required('name', '名前は必須です')
@@ -80,7 +86,7 @@ class UserController
     
     public function update(int $id): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $targetUser = User::findById($id);
@@ -91,6 +97,18 @@ class UserController
         }
         
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        // Staff cannot edit admin users (unless they are admin themselves)
+        if ($user['role'] !== 'admin' && $targetUser['role'] === 'admin') {
+            Response::forbidden('管理者ユーザーを編集する権限がありません');
+            return;
+        }
+        
+        // Staff cannot promote users to admin
+        if ($user['role'] !== 'admin' && isset($data['role']) && $data['role'] === 'admin') {
+            Response::forbidden('管理者権限を付与する権限がありません');
+            return;
+        }
         
         $validator = Validator::make($data)
             ->max('name', 100, '名前は100文字以内で入力してください')
@@ -113,7 +131,7 @@ class UserController
     
     public function destroy(int $id): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $targetUser = User::findById($id);
@@ -126,6 +144,12 @@ class UserController
         // Cannot delete yourself
         if ($targetUser['id'] === $user['id']) {
             Response::error('CANNOT_DELETE_SELF', '自分自身を削除することはできません', 400);
+            return;
+        }
+        
+        // Staff cannot delete admin users
+        if ($user['role'] !== 'admin' && $targetUser['role'] === 'admin') {
+            Response::forbidden('管理者ユーザーを削除する権限がありません');
             return;
         }
         

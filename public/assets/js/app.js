@@ -1538,14 +1538,15 @@ class App {
     openSettingsModal() {
         document.getElementById('settings-modal').style.display = 'flex';
 
-        // Show/hide tabs for admin
+        // Show/hide tabs for staff and admin
         const usersTab = document.getElementById('users-tab');
         const departmentsTab = document.getElementById('departments-tab');
+        const isStaffOrAdmin = this.user?.role === 'admin' || this.user?.role === 'staff';
         if (usersTab) {
-            usersTab.style.display = this.user?.role === 'admin' ? 'flex' : 'none';
+            usersTab.style.display = isStaffOrAdmin ? 'flex' : 'none';
         }
         if (departmentsTab) {
-            departmentsTab.style.display = this.user?.role === 'admin' ? 'flex' : 'none';
+            departmentsTab.style.display = isStaffOrAdmin ? 'flex' : 'none';
         }
 
         // Reset to first tab
@@ -1557,7 +1558,7 @@ class App {
         });
 
         this.renderCategoryList();
-        if (this.user?.role === 'admin') {
+        if (this.user?.role === 'admin' || this.user?.role === 'staff') {
             this.renderDepartmentList();
             this.currentUserFilter = 'staff';
             document.querySelectorAll('.settings-user-segment .segment-btn').forEach((b, i) => {
@@ -1746,17 +1747,38 @@ class App {
     }
 
     openEditUserModal(user) {
+        // Staff cannot edit admin users
+        if (this.user?.role !== 'admin' && user.role === 'admin') {
+            this.showToast('管理者ユーザーは編集できません', 'error');
+            return;
+        }
+
         const modal = document.getElementById('user-edit-modal');
         const companyGroup = document.getElementById('user-edit-company-group');
         const departmentGroup = document.getElementById('user-edit-department-group');
         const departmentSelect = document.getElementById('user-edit-department');
+        const roleSelect = document.getElementById('user-edit-role');
         
         document.getElementById('user-edit-id').value = user.id;
         document.getElementById('user-edit-name').value = user.name;
         document.getElementById('user-edit-email').value = user.email;
-        document.getElementById('user-edit-role').value = user.role;
         document.getElementById('user-edit-password').value = '';
         document.getElementById('user-edit-company').value = user.company || '';
+
+        // Update role options based on current user's role
+        if (this.user?.role === 'admin') {
+            roleSelect.innerHTML = `
+                <option value="staff">スタッフ</option>
+                <option value="admin">管理者</option>
+                <option value="client">クライアント</option>
+            `;
+        } else {
+            roleSelect.innerHTML = `
+                <option value="staff">スタッフ</option>
+                <option value="client">クライアント</option>
+            `;
+        }
+        roleSelect.value = user.role;
 
         // Populate department dropdown
         departmentSelect.innerHTML = '<option value="">未設定</option>' +

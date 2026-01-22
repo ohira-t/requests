@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Department;
 use App\Middleware\AuthMiddleware;
-use App\Middleware\AdminMiddleware;
+use App\Middleware\StaffMiddleware;
 use App\Utils\Response;
 use App\Utils\Validator;
 
@@ -40,7 +40,7 @@ class DepartmentController
     
     public function store(): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -62,7 +62,7 @@ class DepartmentController
     
     public function update(int $id): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $department = Department::findById($id);
@@ -90,7 +90,7 @@ class DepartmentController
     
     public function destroy(int $id): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $department = Department::findById($id);
@@ -107,7 +107,7 @@ class DepartmentController
     
     public function reorder(): void
     {
-        $user = AdminMiddleware::handle();
+        $user = StaffMiddleware::handle();
         if (!$user) return;
         
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
