@@ -5,21 +5,52 @@
 class API {
     constructor() {
         // Detect base path from current location
-        // Handles both /requests/public/app.html and /requests/public/admin/users.html
+        // Handles various deployment scenarios:
+        // - /requests/public/app.html (subdirectory with public)
+        // - /requests/app.html (public folder as document root)
+        // - /app.html (root deployment)
         let basePath = '';
         const path = window.location.pathname;
         
         // Check if we're in a subdirectory deployment
-        const match = path.match(/^(\/[^\/]+\/public)/);
-        if (match) {
-            basePath = match[1];
-        } else if (path.includes('/public/')) {
-            // Handle case like /requests/public/admin/users.html
+        if (path.includes('/public/')) {
+            // /requests/public/... pattern
             basePath = path.substring(0, path.indexOf('/public/') + '/public'.length);
+        } else {
+            // Check for /subdirectory/file.html or /subdirectory/admin/file.html pattern
+            // Extract everything before the last path segment or known file/folder
+            const segments = path.split('/').filter(s => s);
+            if (segments.length > 0) {
+                // If path ends with .html or is admin/..., find the base
+                if (path.includes('/admin/') || path.endsWith('.html')) {
+                    // Find base: /requests from /requests/app.html or /requests/admin/users.html
+                    const htmlIndex = path.indexOf('.html');
+                    const adminIndex = path.indexOf('/admin/');
+                    let endIndex = path.length;
+                    
+                    if (adminIndex > 0) {
+                        endIndex = adminIndex;
+                    } else if (htmlIndex > 0) {
+                        // Find the last / before .html
+                        endIndex = path.lastIndexOf('/', htmlIndex);
+                    }
+                    
+                    if (endIndex > 0) {
+                        basePath = path.substring(0, endIndex);
+                    }
+                } else if (segments.length === 1 && !path.endsWith('/')) {
+                    // /requests -> basePath = /requests
+                    basePath = '/' + segments[0];
+                } else if (segments.length >= 1) {
+                    // /requests/ -> basePath = /requests
+                    basePath = '/' + segments[0];
+                }
+            }
         }
         
         this.baseUrl = basePath + '/api';
         this.csrfToken = null;
+        console.log('[API] Base URL:', this.baseUrl);
     }
 
     async request(method, endpoint, data = null) {

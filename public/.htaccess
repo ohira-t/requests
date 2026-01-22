@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /requests/public/
+    RewriteBase /requests/
     
     # Redirect to HTTPS (enable in production)
     # RewriteCond %{HTTPS} off
