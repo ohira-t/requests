@@ -2,8 +2,9 @@
     RewriteEngine On
     RewriteBase /requests/
     
-    # Debug: Test rewrite rule
+    # Debug: Test rewrite rules
     RewriteRule ^rewrite-test$ test-rewrite.php [L]
+    RewriteRule ^test-api-route$ test-index.php [L]
     
     # Redirect to HTTPS (enable in production)
     # RewriteCond %{HTTPS} off
