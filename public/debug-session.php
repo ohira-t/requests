@@ -35,12 +35,18 @@ $results = [
     ],
 ];
 
-// Try to start session
+// Try to start session with new name
 ini_set('session.cookie_path', '/');
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_secure', '0'); // Force off for testing
+ini_set('session.cookie_secure', !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? '1' : '0');
 ini_set('session.cookie_samesite', 'Lax');
-session_name('glug_session');
+session_name('requests_sess');
+
+// Check if session save path is writable
+$savePath = session_save_path() ?: sys_get_temp_dir();
+$results['session']['save_path'] = $savePath;
+$results['session']['save_path_writable'] = is_writable($savePath);
+
 session_start();
 
 $results['session']['session_id_after_start'] = session_id();

@@ -9,8 +9,8 @@ return [
     
     'session' => [
         'lifetime' => (int)($_ENV['SESSION_LIFETIME'] ?? 1440), // minutes
-        'cookie_name' => 'glug_session',
-        'cookie_secure' => ($_ENV['APP_ENV'] ?? 'production') === 'production',
+        'cookie_name' => 'requests_sess',
+        'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
         'cookie_httponly' => true,
         'cookie_samesite' => 'Lax',
     ],
