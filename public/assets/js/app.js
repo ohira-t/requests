@@ -506,14 +506,6 @@ class App {
                 return;
             }
 
-            // For "requested" view, use the workload endpoint
-            if (this.currentView === 'requested' && this.user?.role !== 'client') {
-                const result = await api.getRequestedWithWorkload();
-                this.tasks = result.data;
-                this.renderRequestedWithWorkload();
-                return;
-            }
-
             const params = { view: this.currentView };
 
             // クライアントはフラットなリスト（グループ化なし）
@@ -521,10 +513,10 @@ class App {
                 // グループ化パラメータを送らない
             } else if (this.currentView === 'my') {
                 params.grouped = 'category';
+            } else if (this.currentView === 'requested') {
+                params.grouped = 'assignee';
             } else if (this.currentView === 'clients') {
                 params.grouped = 'client';
-            } else if (this.currentView === 'department') {
-                params.grouped = 'department';
             }
 
             const result = await api.getTasks(params);
@@ -578,8 +570,8 @@ class App {
             this.renderAssigneeColumns(container);
         } else if (this.currentView === 'clients') {
             this.renderClientColumns(container);
-        } else if (this.currentView === 'department') {
-            this.renderDepartmentColumns(container);
+        } else if (this.currentView === 'calendar') {
+            // Calendar is handled by loadCalendar
         }
     }
 
@@ -765,6 +757,23 @@ class App {
     }
 
     renderAssigneeColumns(container) {
+        // Check if tasks is empty
+        if (!this.tasks || typeof this.tasks !== 'object' || Object.keys(this.tasks).length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <h3>依頼中のタスクはありません</h3>
+                    <p>タスクを作成して、社内スタッフに依頼してみましょう</p>
+                </div>
+            `;
+            return;
+        }
+
         Object.values(this.tasks).forEach(group => {
             if (!group.assignee) return;
 
@@ -791,6 +800,21 @@ class App {
     }
 
     renderClientColumns(container) {
+        // Check if tasks is empty
+        if (!this.tasks || typeof this.tasks !== 'object' || Object.keys(this.tasks).length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <h3>クライアントへの依頼はありません</h3>
+                    <p>タスクを作成して、クライアントに依頼してみましょう</p>
+                </div>
+            `;
+            return;
+        }
+
         Object.values(this.tasks).forEach(group => {
             if (!group.client) return;
 

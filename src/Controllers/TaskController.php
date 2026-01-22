@@ -19,30 +19,33 @@ class TaskController
         
         $filters = [];
         
-        // Parse query parameters
-        if (isset($_GET['view'])) {
-            switch ($_GET['view']) {
-                case 'my':
-                    $filters['assignee_id'] = $user['id'];
-                    break;
-                case 'requested':
-                    // 自分が作成して「他者に」依頼したタスク（自分宛は除外）
-                    $filters['creator_id'] = $user['id'];
-                    $filters['exclude_self_assigned'] = true;
-                    // 社内スタッフへの依頼のみ（クライアント宛は「クライアント別」で確認）
-                    $filters['assignee_type'] = 'internal';
-                    break;
-                case 'clients':
-                    $filters['assignee_type'] = 'client';
-                    break;
-            }
-        }
-        
         // For clients, only show their assigned tasks sorted by due date
         if ($user['role'] === 'client') {
             $filters['assignee_id'] = $user['id'];
             $filters['order_by'] = 'due_date';
             $filters['order_dir'] = 'ASC';
+        } 
+        // For staff, filter based on view
+        else if ($user['role'] === 'staff' || $user['role'] === 'admin') {
+            if (isset($_GET['view'])) {
+                switch ($_GET['view']) {
+                    case 'my':
+                        // 自分に割り当てられたタスク
+                        $filters['assignee_id'] = $user['id'];
+                        break;
+                    case 'requested':
+                        // 自分が作成して社内スタッフに依頼したタスク
+                        $filters['creator_id'] = $user['id'];
+                        $filters['exclude_self_assigned'] = true;
+                        $filters['assignee_type'] = 'internal';
+                        break;
+                    case 'clients':
+                        // 自分が作成してクライアントに依頼したタスク
+                        $filters['creator_id'] = $user['id'];
+                        $filters['assignee_type'] = 'client';
+                        break;
+                }
+            }
         }
         
         if (isset($_GET['category_id'])) {
