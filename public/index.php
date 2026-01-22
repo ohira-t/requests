@@ -69,10 +69,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = $_SERVER['REQUEST_URI'];
 
+// Remove query string
+$uri = parse_url($uri, PHP_URL_PATH);
+
 // Remove base path if needed
-$scriptName = dirname($_SERVER['SCRIPT_NAME']);
-if ($scriptName !== '/' && strpos($uri, $scriptName) === 0) {
-    $uri = substr($uri, strlen($scriptName));
+// Handle case where SCRIPT_NAME is /requests/public/index.php but URI is /requests/...
+$scriptName = $_SERVER['SCRIPT_NAME']; // e.g., /requests/public/index.php
+$scriptDir = dirname($scriptName);      // e.g., /requests/public
+
+// Try to find the common base path between URI and script directory
+// URI: /requests/api/auth/login
+// Script dir: /requests/public
+// We need to strip /requests from URI
+
+if ($scriptDir !== '/') {
+    // Check if URI starts with full script directory (e.g., /requests/public)
+    if (strpos($uri, $scriptDir) === 0) {
+        $uri = substr($uri, strlen($scriptDir));
+    } else {
+        // Check if there's a parent directory match (e.g., /requests)
+        $parentDir = dirname($scriptDir); // e.g., /requests
+        if ($parentDir !== '/' && strpos($uri, $parentDir) === 0) {
+            $uri = substr($uri, strlen($parentDir));
+        }
+    }
+}
+
+// Ensure URI starts with /
+if (empty($uri) || $uri[0] !== '/') {
+    $uri = '/' . $uri;
 }
 
 // Route the request

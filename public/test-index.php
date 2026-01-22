@@ -1,6 +1,6 @@
 <?php
 /**
- * Test index.php routing logic
+ * Test index.php routing logic (updated)
  */
 
 header('Content-Type: application/json');
@@ -20,21 +20,36 @@ $results = [
 $uri = parse_url($uri, PHP_URL_PATH);
 $results['step2_without_query'] = $uri;
 
-// Remove base path logic from index.php
-$scriptName = dirname($_SERVER['SCRIPT_NAME']);
-$results['step3_script_name_dir'] = $scriptName;
+// New base path logic
+$scriptName = $_SERVER['SCRIPT_NAME'];
+$scriptDir = dirname($scriptName);
+$results['step3_script_name'] = $scriptName;
+$results['step3_script_dir'] = $scriptDir;
 
-if ($scriptName !== '/' && strpos($uri, $scriptName) === 0) {
-    $uri = substr($uri, strlen($scriptName));
+if ($scriptDir !== '/') {
+    if (strpos($uri, $scriptDir) === 0) {
+        $uri = substr($uri, strlen($scriptDir));
+        $results['step4_matched'] = 'full script dir';
+    } else {
+        $parentDir = dirname($scriptDir);
+        if ($parentDir !== '/' && strpos($uri, $parentDir) === 0) {
+            $uri = substr($uri, strlen($parentDir));
+            $results['step4_matched'] = 'parent dir: ' . $parentDir;
+        }
+    }
 }
-$results['step4_after_base_removal'] = $uri;
+
+if (empty($uri) || $uri[0] !== '/') {
+    $uri = '/' . $uri;
+}
+
+$results['step5_final_uri'] = $uri;
 
 // Check if this is an API request
-$results['step5_is_api'] = strpos($uri, '/api/') === 0;
-$results['step6_strpos_result'] = strpos($uri, '/api/');
+$results['step6_is_api'] = strpos($uri, '/api/') === 0;
 
-// What the URI should be for API routing
-$results['expected_uri_for_api'] = '/api/auth/login';
-$results['current_uri_matches'] = ($uri === '/api/auth/login');
+// Simulate API route test
+$results['test_api_login'] = '/api/auth/login';
+$results['would_match_api'] = strpos('/api/auth/login', '/api/') === 0;
 
 echo json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
