@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id);
-CREATE INDEX IF NOT EXISTS idx_tasks_requester ON tasks(requester_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_creator ON tasks(creator_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_comments_task ON comments(task_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
