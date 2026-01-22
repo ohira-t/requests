@@ -166,7 +166,12 @@ print_subheader "タスク一覧"
 test_api "タスク一覧取得" "GET" "/tasks" "" "success"
 test_api "タスク一覧（カンバン）" "GET" "/tasks?grouped=status" "" "success"
 test_api "タスク一覧（担当者別）" "GET" "/tasks?grouped=assignee" "" "success"
-test_api "タスク一覧（部署別）" "GET" "/tasks?grouped=department" "" "success"
+test_api "タスク一覧（クライアント別）" "GET" "/tasks?grouped=client" "" "success"
+
+print_subheader "タスクビュー（スタッフ用）"
+test_api "自分の課題" "GET" "/tasks?view=my&grouped=category" "" "success"
+test_api "依頼した課題" "GET" "/tasks?view=requested&grouped=assignee" "" "success"
+test_api "クライアント別" "GET" "/tasks?view=clients&grouped=client" "" "success"
 
 print_subheader "タスクCRUD"
 test_api "タスク作成" "POST" "/tasks" '{"title":"テストタスク","description":"テスト説明","status":"pending","priority":"medium"}' "success"
@@ -184,7 +189,17 @@ else
 fi
 
 # ============================================================
-# 6. Role-based Access Tests
+# 6. Calendar Tests
+# ============================================================
+print_header "📅 カレンダーテスト"
+
+print_subheader "カレンダー取得"
+YEAR=$(date +%Y)
+MONTH=$(date +%m)
+test_api "カレンダー取得（今月）" "GET" "/tasks/calendar?start=${YEAR}-${MONTH}-01&end=${YEAR}-${MONTH}-31" "" "success"
+
+# ============================================================
+# 7. Role-based Access Tests
 # ============================================================
 print_header "🔒 権限テスト"
 
@@ -195,16 +210,33 @@ print_subheader "スタッフ権限"
 test_api "スタッフでログイン" "POST" "/auth/login" '{"email":"tanaka@example.com","password":"admin123"}' "success"
 test_api "スタッフがタスク取得" "GET" "/tasks" "" "success"
 test_api "スタッフが部署一覧取得" "GET" "/departments" "" "success"
+test_api "スタッフがカレンダー取得" "GET" "/tasks/calendar?start=${YEAR}-${MONTH}-01&end=${YEAR}-${MONTH}-31" "" "success"
 
-# Try to create user (should fail for staff)
-STAFF_USER_CREATE=$(curl -s -b "$COOKIE_FILE" -X POST -H "Content-Type: application/json" -d '{"name":"不正ユーザー","email":"invalid@test.com","password":"test123","role":"staff","type":"internal"}' "${BASE_URL}/users")
+# Staff can create categories
+test_api "スタッフがカテゴリ作成" "POST" "/categories" '{"name":"スタッフカテゴリ","color":"#3366FF"}' "success"
+STAFF_CAT_RESPONSE=$(curl -s -b "$COOKIE_FILE" "${BASE_URL}/categories")
+STAFF_CAT_ID=$(echo "$STAFF_CAT_RESPONSE" | sed 's/},{/}\n{/g' | grep 'スタッフカテゴリ' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+if [ -n "$STAFF_CAT_ID" ]; then
+    test_api "スタッフがカテゴリ削除" "DELETE" "/categories/$STAFF_CAT_ID" "" "success"
+fi
+
+# Staff can create users (but not admin)
+test_api "スタッフがユーザー作成（staff）" "POST" "/users" '{"name":"スタッフ作成ユーザー","email":"staff-created@test.com","password":"test123","role":"staff","type":"internal"}' "success"
+STAFF_USER_RESPONSE=$(curl -s -b "$COOKIE_FILE" "${BASE_URL}/users")
+STAFF_CREATED_USER_ID=$(echo "$STAFF_USER_RESPONSE" | sed 's/},{/}\n{/g' | grep 'スタッフ作成ユーザー' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+if [ -n "$STAFF_CREATED_USER_ID" ]; then
+    test_api "スタッフが作成したユーザーを削除" "DELETE" "/users/$STAFF_CREATED_USER_ID" "" "success"
+fi
+
+# Staff cannot create admin users
+STAFF_ADMIN_CREATE=$(curl -s -b "$COOKIE_FILE" -X POST -H "Content-Type: application/json" -d '{"name":"不正管理者","email":"invalid-admin@test.com","password":"test123","role":"admin","type":"internal"}' "${BASE_URL}/users")
 TOTAL=$((TOTAL + 1))
-if echo "$STAFF_USER_CREATE" | grep -q "FORBIDDEN\|UNAUTHORIZED"; then
-    echo -e "  ${GREEN}✓${NC} #$TOTAL スタッフはユーザー作成不可"
+if echo "$STAFF_ADMIN_CREATE" | grep -q "FORBIDDEN\|admin"; then
+    echo -e "  ${GREEN}✓${NC} #$TOTAL スタッフは管理者ユーザー作成不可"
     PASS=$((PASS + 1))
 else
-    echo -e "  ${RED}✗${NC} #$TOTAL スタッフがユーザー作成できてしまった"
-    echo -e "    ${RED}Response: ${STAFF_USER_CREATE:0:200}${NC}"
+    echo -e "  ${RED}✗${NC} #$TOTAL スタッフが管理者を作成できてしまった"
+    echo -e "    ${RED}Response: ${STAFF_ADMIN_CREATE:0:200}${NC}"
     FAIL=$((FAIL + 1))
 fi
 
@@ -215,11 +247,23 @@ print_subheader "クライアント権限"
 test_api "クライアントでログイン" "POST" "/auth/login" '{"email":"suzuki@client.example.com","password":"admin123"}' "success"
 test_api "クライアントがタスク取得" "GET" "/tasks" "" "success"
 
+# Client cannot create categories
+CLIENT_CAT_CREATE=$(curl -s -b "$COOKIE_FILE" -X POST -H "Content-Type: application/json" -d '{"name":"不正カテゴリ","color":"#FF0000"}' "${BASE_URL}/categories")
+TOTAL=$((TOTAL + 1))
+if echo "$CLIENT_CAT_CREATE" | grep -q "FORBIDDEN\|UNAUTHORIZED"; then
+    echo -e "  ${GREEN}✓${NC} #$TOTAL クライアントはカテゴリ作成不可"
+    PASS=$((PASS + 1))
+else
+    echo -e "  ${RED}✗${NC} #$TOTAL クライアントがカテゴリを作成できてしまった"
+    echo -e "    ${RED}Response: ${CLIENT_CAT_CREATE:0:200}${NC}"
+    FAIL=$((FAIL + 1))
+fi
+
 # Logout client
 curl -s -b "$COOKIE_FILE" -c "$COOKIE_FILE" -X POST "${BASE_URL}/auth/logout" > /dev/null
 
 # ============================================================
-# 7. Session Tests
+# 8. Session Tests
 # ============================================================
 print_header "🍪 セッション管理テスト"
 
