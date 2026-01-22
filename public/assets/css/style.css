@@ -2598,12 +2598,15 @@ a.dropdown-item {
 }
 
 .calendar-day {
-    min-height: 100px;
+    height: 120px;
     padding: var(--spacing-sm);
     border-right: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
     cursor: pointer;
     transition: background var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .calendar-day:nth-child(7n) {
@@ -2642,6 +2645,7 @@ a.dropdown-item {
     font-weight: 500;
     color: var(--color-text-primary);
     margin-bottom: var(--spacing-xs);
+    flex-shrink: 0;
 }
 
 .calendar-day:nth-child(7n+1) .day-number {
@@ -2661,6 +2665,22 @@ a.dropdown-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.day-tasks::-webkit-scrollbar {
+    width: 4px;
+}
+
+.day-tasks::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+}
+
+.day-tasks::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-disabled);
 }
 
 .calendar-task {
@@ -2744,13 +2764,19 @@ a.dropdown-item {
     height: 14px;
 }
 
+@media (max-width: 1024px) {
+    .calendar-day {
+        height: 100px;
+    }
+}
+
 @media (max-width: 768px) {
     .calendar-view {
         padding: var(--spacing-md);
     }
 
     .calendar-day {
-        min-height: 60px;
+        height: 80px;
         padding: var(--spacing-xs);
     }
 
@@ -2761,6 +2787,16 @@ a.dropdown-item {
 
     .day-number {
         font-size: var(--font-size-xs);
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .calendar-nav {
+        width: 100%;
+        justify-content: center;
     }
 }
 
