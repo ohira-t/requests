@@ -283,16 +283,13 @@ class AdminUsers {
         const admins = this.users.filter(u => u.role === 'admin').length;
         const staff = this.users.filter(u => u.role === 'staff').length;
 
-        document.getElementById('stat-total').textContent = total;
-        document.getElementById('stat-admin').textContent = admins;
-        document.getElementById('stat-staff').textContent = staff;
-
-        // Update stats labels based on type
         const statsContainer = document.getElementById('admin-stats');
+        if (!statsContainer) return;
+
         if (this.currentType === 'client') {
             statsContainer.innerHTML = `
                 <div class="stat-item">
-                    <span class="stat-value" id="stat-total">${total}</span>
+                    <span class="stat-value">${total}</span>
                     <span class="stat-label">クライアント数</span>
                 </div>
             `;
