@@ -50,7 +50,6 @@ class API {
         
         this.baseUrl = basePath + '/api';
         this.csrfToken = null;
-        console.log('[API] Base URL:', this.baseUrl);
     }
 
     async request(method, endpoint, data = null) {

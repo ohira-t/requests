@@ -2,10 +2,6 @@
     RewriteEngine On
     RewriteBase /requests/
     
-    # Debug: Test rewrite rules
-    RewriteRule ^rewrite-test$ test-rewrite.php [L]
-    RewriteRule ^test-api-route$ test-index.php [L]
-    
     # Redirect to HTTPS (enable in production)
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
@@ -25,6 +21,14 @@
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    
+    # Content Security Policy
+    # - 'self': 同一オリジンのみ許可
+    # - fonts.googleapis.com, fonts.gstatic.com: Google Fonts
+    # - 'unsafe-inline': インラインスタイル（style属性）許可（必要最小限）
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'"
 </IfModule>
 
 # PHP Settings
