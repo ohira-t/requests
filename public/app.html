@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requests</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen">
+            <div class="login-container">
+                <div class="login-header">
+                    <div class="login-logo">
+                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="12" fill="url(#logo-gradient)"/>
+                            <path d="M14 24L21 31L34 18" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="logo-gradient" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#007AFF" stop-opacity="0.8"/>
+                                    <stop offset="1" stop-color="#007AFF"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 class="login-title">Requests</h1>
+                    <p class="login-subtitle">タスク・依頼管理</p>
+                </div>
+                
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="email">メールアドレス</label>
+                        <input type="email" id="email" name="email" placeholder="email@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">パスワード</label>
+                        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <div id="login-error" class="form-error" style="display: none;"></div>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <span class="btn-text">ログイン</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </form>
+                
+                <div class="login-footer">
+                    <p class="login-hint">デモ: admin@example.com / password</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main App -->
+        <div id="main-app" class="screen" style="display: none;">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="logo" id="app-logo">
+                        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="32" height="32" rx="8" fill="url(#header-logo-gradient)"/>
+                            <path d="M9 16L14 21L23 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="header-logo-gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                                    <stop class="logo-stop-1" stop-color="#007AFF" stop-opacity="0.8"/>
+                                    <stop class="logo-stop-2" offset="1" stop-color="#007AFF"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <span class="logo-text">Requests</span>
+                    </div>
+                    
+                    <nav class="view-tabs" id="view-tabs">
+                        <button class="view-tab active" data-view="my">
+                            <span class="tab-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <span class="tab-text">自分の課題</span>
+                        </button>
+                        <button class="view-tab" data-view="requested">
+                            <span class="tab-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                            </span>
+                            <span class="tab-text">依頼した課題</span>
+                        </button>
+                        <button class="view-tab" data-view="clients">
+                            <span class="tab-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                                    <path d="M10 6h4"/>
+                                    <path d="M10 10h4"/>
+                                    <path d="M10 14h4"/>
+                                    <path d="M10 18h4"/>
+                                </svg>
+                            </span>
+                            <span class="tab-text">クライアント別</span>
+                        </button>
+                        <button class="view-tab" data-view="department" id="department-tab" style="display: none;">
+                            <span class="tab-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </span>
+                            <span class="tab-text">部署別</span>
+                        </button>
+                        <button class="view-tab" data-view="stats" id="stats-tab" style="display: none;">
+                            <span class="tab-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="20" x2="18" y2="10"/>
+                                    <line x1="12" y1="20" x2="12" y2="4"/>
+                                    <line x1="6" y1="20" x2="6" y2="14"/>
+                                </svg>
+                            </span>
+                            <span class="tab-text">統計</span>
+                        </button>
+                    </nav>
+                </div>
+                
+                <div class="header-right">
+                    <div class="search-box">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="タスクを検索...">
+                    </div>
+                    
+                    <button class="btn btn-primary" id="new-task-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>新規タスク</span>
+                    </button>
+                    
+                    <button class="icon-btn notification-btn" id="notifications-btn" title="通知">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+                    </button>
+                    
+                    <button class="icon-btn" id="settings-btn" title="設定">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </button>
+                    
+                    <div class="user-menu" id="user-menu">
+                        <button class="user-avatar" id="user-avatar-btn">
+                            <span id="user-initials">U</span>
+                        </button>
+                        <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                            <div class="user-info">
+                                <span class="user-name" id="user-name">ユーザー</span>
+                                <span class="user-email" id="user-email">user@example.com</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" id="change-password-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span>パスワード変更</span>
+                            </button>
+                            <button class="dropdown-item" id="admin-users-link" style="display: none;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                                <span>ユーザー管理</span>
+                            </button>
+                            <div class="dropdown-divider" id="admin-divider" style="display: none;"></div>
+                            <button class="dropdown-item" id="logout-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                <span>ログアウト</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Main Content -->
+            <main class="app-main">
+                <div class="board-container" id="board-container">
+                    <!-- Columns will be rendered here -->
+                </div>
+            </main>
+        </div>
+        
+        <!-- Task Modal -->
+        <div id="task-modal" class="modal-overlay" style="display: none;">
+            <div class="modal">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modal-title">新規タスク</h2>
+                    <button class="modal-close" id="modal-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="task-form" class="modal-body">
+                    <input type="hidden" id="task-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="task-title">タイトル <span class="required">*</span></label>
+                        <input type="text" id="task-title" name="title" placeholder="タスクのタイトルを入力" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-description">説明</label>
+                        <textarea id="task-description" name="description" rows="3" placeholder="タスクの詳細を入力..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-category">カテゴリー</label>
+                            <select id="task-category" name="category_id">
+                                <option value="">未分類</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <span class="form-label">担当者</span>
+                            <input type="hidden" id="task-assignee" name="assignee_id" value="">
+                            <button type="button" class="assignee-picker-trigger" id="assignee-trigger">
+                                <span class="assignee-display" id="assignee-value">
+                                    <span class="assignee-placeholder">担当者を選択</span>
+                                </span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-priority">優先度</label>
+                            <select id="task-priority" name="priority">
+                                <option value="medium">中</option>
+                                <option value="urgent">緊急</option>
+                                <option value="high">高</option>
+                                <option value="low">低</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-due-date">期限日</label>
+                            <input type="date" id="task-due-date" name="due_date">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-tags">タグ（カンマ区切り）</label>
+                        <input type="text" id="task-tags" name="tags" placeholder="デザイン, 急ぎ, レビュー待ち">
+                    </div>
+                </form>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-text-cancel" id="modal-cancel">キャンセル</button>
+                    <button type="submit" form="task-form" class="btn btn-primary" id="modal-submit">
+                        <span class="btn-text">保存</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Detail Modal -->
+        <div id="task-detail-modal" class="modal-overlay" style="display: none;">
+            <div class="modal modal-large">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <div class="task-detail-header">
+                        <span class="ticket-id" id="detail-ticket-id"></span>
+                        <h2 class="modal-title" id="detail-title"></h2>
+                    </div>
+                    <button class="modal-close" id="detail-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="modal-body task-detail-body">
+                    <div class="task-detail-main">
+                        <div class="task-meta-bar">
+                            <span class="task-status-badge" id="detail-status"></span>
+                            <span class="task-priority-badge" id="detail-priority"></span>
+                            <span class="task-due" id="detail-due"></span>
+                        </div>
+                        
+                        <div class="task-description-box" id="detail-description">
+                            <p class="empty-text">説明なし</p>
+                        </div>
+                        
+                        <div class="task-info-grid">
+                            <div class="task-info-item">
+                                <span class="info-label">カテゴリー</span>
+                                <span class="info-value" id="detail-category">-</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="info-label">担当者</span>
+                                <span class="info-value" id="detail-assignee">-</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="info-label">作成者</span>
+                                <span class="info-value" id="detail-creator">-</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="info-label">作成日</span>
+                                <span class="info-value" id="detail-created">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="task-tags-box" id="detail-tags-box" style="display: none;">
+                            <span class="info-label">タグ</span>
+                            <div class="tag-list" id="detail-tags"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-comments">
+                        <h3 class="comments-title">コメント</h3>
+                        <div class="comments-list" id="comments-list">
+                            <p class="empty-text">コメントはありません</p>
+                        </div>
+                        
+                        <form class="comment-form" id="comment-form">
+                            <textarea id="comment-input" placeholder="コメントを入力..." rows="2"></textarea>
+                            <button type="submit" class="btn btn-primary btn-small">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                                <span>送信</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-text-cancel" id="detail-delete">削除</button>
+                    <button type="button" class="btn btn-secondary" id="detail-edit">編集</button>
+                    <button type="button" class="btn btn-primary" id="detail-complete">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span id="detail-complete-text">完了にする</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Edit Modal -->
+        <div id="category-edit-modal" class="modal-overlay" style="display: none;">
+            <div class="modal modal-small">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="category-edit-title">カテゴリーを編集</h2>
+                    <button class="modal-close" id="category-edit-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="category-edit-form" class="modal-body">
+                    <input type="hidden" id="category-edit-id">
+                    <div class="form-group">
+                        <label for="category-edit-name">カテゴリー名</label>
+                        <input type="text" id="category-edit-name" class="input" placeholder="カテゴリー名を入力" required>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="category-edit-cancel">キャンセル</button>
+                    <button type="submit" form="category-edit-form" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay" style="display: none;">
+            <div class="modal settings-modal">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title">設定</h2>
+                    <button class="modal-close" id="settings-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Settings Tabs -->
+                <div class="settings-tabs" id="settings-tabs">
+                    <button class="settings-tab active" data-tab="categories">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>カテゴリー</span>
+                    </button>
+                    <button class="settings-tab" data-tab="departments" id="departments-tab" style="display: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span>部署</span>
+                    </button>
+                    <button class="settings-tab" data-tab="users" id="users-tab" style="display: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span>ユーザー</span>
+                    </button>
+                </div>
+                
+                <div class="modal-body settings-body">
+                    <!-- Categories Tab -->
+                    <div class="settings-panel active" id="panel-categories">
+                        <div class="settings-panel-content">
+                            <div class="category-list" id="category-list">
+                                <!-- Categories will be rendered here -->
+                            </div>
+                        </div>
+                        <div class="settings-panel-footer">
+                            <button class="btn btn-secondary btn-full" id="add-category-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                <span>カテゴリーを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Departments Tab -->
+                    <div class="settings-panel" id="panel-departments">
+                        <div class="settings-panel-content">
+                            <div class="department-list" id="department-list">
+                                <!-- Departments will be rendered here -->
+                            </div>
+                        </div>
+                        <div class="settings-panel-footer">
+                            <button class="btn btn-secondary btn-full" id="add-department-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                <span>部署を追加</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Users Tab -->
+                    <div class="settings-panel" id="panel-users">
+                        <div class="settings-user-segment">
+                            <button type="button" class="segment-btn active" data-user-type="staff">社内</button>
+                            <button type="button" class="segment-btn" data-user-type="client">クライアント</button>
+                        </div>
+                        <div class="settings-panel-content">
+                            <div class="user-list" id="user-list">
+                                <!-- Users will be rendered here -->
+                            </div>
+                        </div>
+                        <div class="settings-panel-footer">
+                            <button class="btn btn-secondary btn-full" id="add-user-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="8.5" cy="7" r="4"/>
+                                    <line x1="20" y1="8" x2="20" y2="14"/>
+                                    <line x1="23" y1="11" x2="17" y2="11"/>
+                                </svg>
+                                <span id="add-user-btn-text">ユーザーを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notifications Panel -->
+        <div id="notifications-panel" class="notifications-panel" style="display: none;">
+            <div class="notifications-header">
+                <h3>通知</h3>
+                <div class="notifications-actions">
+                    <button class="notifications-action-btn" id="mark-all-read-btn" title="すべて既読">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </button>
+                    <button class="notifications-action-btn" id="notifications-close" title="閉じる">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="notifications-list" id="notifications-list">
+                <div class="notifications-empty">通知はありません</div>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div id="change-password-modal" class="modal-overlay" style="display: none;">
+            <div class="modal modal-small">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title">パスワード変更</h2>
+                    <button class="modal-close" id="change-password-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="change-password-form" class="modal-body">
+                    <div class="form-group">
+                        <label for="current-password">現在のパスワード <span class="required">*</span></label>
+                        <input type="password" id="current-password" class="input" placeholder="現在のパスワードを入力" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">新しいパスワード <span class="required">*</span></label>
+                        <input type="password" id="new-password" class="input" placeholder="新しいパスワードを入力" required autocomplete="new-password">
+                        <small style="color: #8e8e93; font-size: 13px;">6文字以上で入力してください</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password-confirmation">新しいパスワード（確認） <span class="required">*</span></label>
+                        <input type="password" id="new-password-confirmation" class="input" placeholder="新しいパスワードを再入力" required autocomplete="new-password">
+                    </div>
+                    <div id="change-password-error" class="form-error" style="display: none;"></div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="change-password-cancel">キャンセル</button>
+                    <button type="submit" form="change-password-form" class="btn btn-primary" id="change-password-submit">
+                        <span class="btn-text">変更</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Edit Modal -->
+        <div id="user-edit-modal" class="modal-overlay" style="display: none;">
+            <div class="modal modal-small">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="user-edit-title">ユーザーを編集</h2>
+                    <button class="modal-close" id="user-edit-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="user-edit-form" class="modal-body">
+                    <input type="hidden" id="user-edit-id">
+                    <div class="form-group">
+                        <label for="user-edit-name">名前 / 会社名 <span class="required">*</span></label>
+                        <input type="text" id="user-edit-name" class="input" placeholder="名前を入力" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-edit-email">メールアドレス <span class="required">*</span></label>
+                        <input type="email" id="user-edit-email" class="input" placeholder="email@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-edit-role">ロール <span class="required">*</span></label>
+                        <select id="user-edit-role" class="input" required>
+                            <option value="staff">スタッフ</option>
+                            <option value="admin">管理者</option>
+                            <option value="client">クライアント</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="user-edit-company-group" style="display: none;">
+                        <label for="user-edit-company">会社名</label>
+                        <input type="text" id="user-edit-company" class="input" placeholder="会社名を入力">
+                    </div>
+                    <div class="form-group" id="user-edit-department-group">
+                        <label for="user-edit-department">部署</label>
+                        <select id="user-edit-department" class="input">
+                            <option value="">未設定</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-edit-password">新しいパスワード</label>
+                        <input type="password" id="user-edit-password" class="input" placeholder="変更する場合のみ入力">
+                        <small style="color: #8e8e93; font-size: 13px;">空欄の場合は変更されません</small>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="user-edit-cancel">キャンセル</button>
+                    <button type="submit" form="user-edit-form" class="btn btn-primary" id="user-edit-submit">
+                        <span class="btn-text">保存</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignee Picker Sheet -->
+        <div id="assignee-sheet" class="sheet-overlay" style="display: none;">
+            <div class="sheet">
+                <div class="sheet-header">
+                    <button type="button" class="sheet-cancel" id="assignee-sheet-cancel">キャンセル</button>
+                    <h3 class="sheet-title">担当者</h3>
+                    <button type="button" class="sheet-done" id="assignee-sheet-done">完了</button>
+                </div>
+                <div class="sheet-search">
+                    <div class="sheet-search-box">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="assignee-search" placeholder="検索">
+                    </div>
+                </div>
+                <div class="sheet-segment">
+                    <button type="button" class="segment-btn active" data-type="staff">社内</button>
+                    <button type="button" class="segment-btn" data-type="client">クライアント</button>
+                </div>
+                <div class="sheet-list" id="assignee-list">
+                    <!-- Users will be rendered here -->
+                </div>
+                <div class="sheet-footer">
+                    <button type="button" class="sheet-add-btn" id="assignee-add-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span id="assignee-add-text">スタッフを追加</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast-container"></div>
+    </div>
+    
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+</body>
+</html>

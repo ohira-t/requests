@@ -1,0 +1,42 @@
+# Environment and Configuration
+.env
+.env.local
+.env.*.local
+config/database.php
+
+# Dependencies
+/vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Cache
+/cache/
+*.cache
+
+# Temporary files
+/tmp/
+*.tmp
+
+# Test artifacts
+/tests/coverage/
+.phpunit.result.cache
+
+# Cookie files (for testing)
+/tmp/cookies.txt
+/tmp/*.txt
+
+# Uploaded files (if any)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Local development
+*.local.php
