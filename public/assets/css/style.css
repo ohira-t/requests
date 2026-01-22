@@ -2500,16 +2500,19 @@ a.dropdown-item {
    Calendar View - Apple-like Design
    ============================================ */
 .calendar-view {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-lg) var(--spacing-xl);
+    width: 100%;
+    height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md) var(--spacing-xl);
 }
 
 .calendar-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-lg);
+    justify-content: center;
+    margin-bottom: var(--spacing-md);
+    flex-shrink: 0;
 }
 
 .calendar-nav {
@@ -2566,6 +2569,10 @@ a.dropdown-item {
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .calendar-weekdays {
@@ -2595,10 +2602,13 @@ a.dropdown-item {
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    flex: 1;
+    min-height: 0;
 }
 
 .calendar-day {
-    height: 120px;
+    min-height: 100px;
     padding: var(--spacing-sm);
     border-right: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
@@ -2766,17 +2776,19 @@ a.dropdown-item {
 
 @media (max-width: 1024px) {
     .calendar-day {
-        height: 100px;
+        min-height: 80px;
     }
 }
 
 @media (max-width: 768px) {
     .calendar-view {
-        padding: var(--spacing-md);
+        padding: var(--spacing-sm);
+        height: auto;
+        min-height: calc(100vh - 140px);
     }
 
     .calendar-day {
-        height: 80px;
+        min-height: 60px;
         padding: var(--spacing-xs);
     }
 
@@ -2791,7 +2803,7 @@ a.dropdown-item {
 
     .calendar-header {
         flex-direction: column;
-        gap: var(--spacing-md);
+        gap: var(--spacing-sm);
     }
 
     .calendar-nav {
