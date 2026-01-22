@@ -2305,8 +2305,7 @@ class App {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const taskId = parseInt(el.dataset.taskId);
-                const task = this.calendarTasks.find(t => t.id === taskId);
-                if (task) this.openTaskDetail(task);
+                if (taskId) this.openTaskDetail(taskId);
             });
         });
     }
