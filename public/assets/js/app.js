@@ -1211,8 +1211,9 @@ class App {
         // Save to server
         try {
             if (newCategoryId !== oldCategoryId) {
-                // Update task category
-                await api.updateTask(taskId, { category_id: parseInt(newCategoryId) });
+                // Update task category (use null for "未分類" which has id=0)
+                const categoryValue = newCategoryId === '0' || newCategoryId === 0 ? null : parseInt(newCategoryId);
+                await api.updateTask(taskId, { category_id: categoryValue });
                 this.draggedTask.dataset.category = newCategoryId;
             }
             // Update sort order
