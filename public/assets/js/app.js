@@ -2475,8 +2475,8 @@ class App {
                                 <polyline points="9 18 15 12 9 6"/>
                             </svg>
                         </button>
+                        <button class="calendar-today-btn" id="calendar-today">今日</button>
                     </div>
-                    <button class="calendar-today-btn" id="calendar-today">今日</button>
                 </div>
                 
                 <div class="calendar-grid">
@@ -2492,17 +2492,16 @@ class App {
                     <div class="calendar-days">${daysHtml}</div>
                 </div>
                 
-                <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-lg); font-size: var(--font-size-sm);">
-                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                        <span style="width: 12px; height: 12px; background: var(--color-primary); border-radius: 2px;"></span>
+                <div class="calendar-legend">
+                    <div class="calendar-legend-item">
+                        <span class="legend-color" style="background: var(--color-primary);"></span>
                         自分のタスク
                     </div>
-                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                        <span style="width: 12px; height: 12px; background: var(--color-success); border-radius: 2px;"></span>
+                    <div class="calendar-legend-item">
+                        <span class="legend-color" style="background: var(--color-success);"></span>
                         依頼したタスク
                     </div>
-                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
-                        <span style="width: 12px; height: 12px; background: var(--color-danger); border-radius: 2px;"></span>
+                    <div class="calendar-legend-item">
                         期限切れ
                     </div>
                 </div>

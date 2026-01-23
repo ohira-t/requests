@@ -1823,7 +1823,7 @@ a.dropdown-item {
 }
 
 /* ============================================
-   Empty State
+   Empty State - Centered in container
    ============================================ */
 .empty-state {
     display: flex;
@@ -1832,6 +1832,9 @@ a.dropdown-item {
     justify-content: center;
     padding: var(--spacing-2xl);
     text-align: center;
+    min-height: 400px;
+    width: 100%;
+    flex: 1;
 }
 
 .empty-state svg {
@@ -1840,6 +1843,13 @@ a.dropdown-item {
     color: var(--color-text-secondary);
     margin-bottom: var(--spacing-md);
     opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
 }
 
 .empty-state p {
@@ -2674,17 +2684,17 @@ a.dropdown-item {
    ============================================ */
 .calendar-view {
     width: 100%;
-    height: calc(100vh - 140px);
     display: flex;
     flex-direction: column;
-    padding: var(--spacing-md) var(--spacing-xl);
+    padding: var(--spacing-md) var(--spacing-xl) var(--spacing-xl);
 }
 
 .calendar-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
     flex-shrink: 0;
 }
 
@@ -2717,7 +2727,7 @@ a.dropdown-item {
     font-size: var(--font-size-xl);
     font-weight: 700;
     color: var(--color-text-primary);
-    min-width: 200px;
+    min-width: 180px;
     text-align: center;
 }
 
@@ -2742,21 +2752,17 @@ a.dropdown-item {
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
 }
 
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    background: var(--color-bg-tertiary);
+    background: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border-light);
 }
 
 .calendar-weekday {
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-md);
     text-align: center;
     font-size: var(--font-size-xs);
     font-weight: 600;
@@ -2775,13 +2781,10 @@ a.dropdown-item {
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: repeat(6, 1fr);
-    flex: 1;
-    min-height: 0;
 }
 
 .calendar-day {
-    min-height: 100px;
+    min-height: 120px;
     padding: var(--spacing-sm);
     border-right: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
@@ -2789,7 +2792,7 @@ a.dropdown-item {
     transition: background var(--transition-fast);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    background: var(--color-bg-secondary);
 }
 
 .calendar-day:nth-child(7n) {
@@ -2801,7 +2804,7 @@ a.dropdown-item {
 }
 
 .calendar-day.other-month {
-    background: var(--color-bg-tertiary);
+    background: var(--color-bg);
 }
 
 .calendar-day.other-month .day-number {
@@ -2809,12 +2812,12 @@ a.dropdown-item {
 }
 
 .calendar-day.today {
-    background: rgba(0, 122, 255, 0.05);
+    background: rgba(0, 122, 255, 0.04);
 }
 
 .calendar-day.today .day-number {
     background: var(--color-primary);
-    color: white;
+    color: white !important;
     border-radius: var(--radius-full);
     width: 28px;
     height: 28px;
@@ -2844,26 +2847,17 @@ a.dropdown-item {
     color: var(--color-text-disabled);
 }
 
+/* Today's number should always be white regardless of day of week */
+.calendar-day.today .day-number {
+    color: white !important;
+}
+
 .day-tasks {
     display: flex;
     flex-direction: column;
     gap: 2px;
     flex: 1;
-    overflow-y: auto;
     min-height: 0;
-}
-
-.day-tasks::-webkit-scrollbar {
-    width: 4px;
-}
-
-.day-tasks::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 2px;
-}
-
-.day-tasks::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-disabled);
 }
 
 .calendar-task {
@@ -2905,6 +2899,26 @@ a.dropdown-item {
 
 .calendar-task-more:hover {
     color: var(--color-primary);
+}
+
+.calendar-legend {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.calendar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
 }
 
 /* Others' tasks styling (for requested view) */
@@ -2949,19 +2963,17 @@ a.dropdown-item {
 
 @media (max-width: 1024px) {
     .calendar-day {
-        min-height: 80px;
+        min-height: 100px;
     }
 }
 
 @media (max-width: 768px) {
     .calendar-view {
         padding: var(--spacing-sm);
-        height: auto;
-        min-height: calc(100vh - 140px);
     }
 
     .calendar-day {
-        min-height: 60px;
+        min-height: 80px;
         padding: var(--spacing-xs);
     }
 

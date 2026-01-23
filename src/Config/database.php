@@ -5,7 +5,7 @@ $driver = $_ENV['DB_DRIVER'] ?? 'mysql';
 if ($driver === 'sqlite') {
     return [
         'driver' => 'sqlite',
-        'database' => $_ENV['DB_DATABASE'] ?? dirname(__DIR__, 2) . '/database/database.sqlite',
+        'database' => $_ENV['DB_SQLITE_PATH'] ?? dirname(__DIR__, 2) . '/database/database.sqlite',
     ];
 }
 
