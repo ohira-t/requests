@@ -1453,8 +1453,9 @@ class App {
 
     editSelectedTask() {
         if (!this.selectedTask) return;
+        const task = this.selectedTask;  // Save before closeDetailModal clears it
         this.closeDetailModal();
-        this.openTaskModal(this.selectedTask);
+        this.openTaskModal(task);
     }
 
     async deleteSelectedTask() {
