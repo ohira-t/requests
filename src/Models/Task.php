@@ -510,28 +510,33 @@ class Task
     {
         $tasks = self::getAll($filters);
         
-        // 社内スタッフのみ取得（クライアントへの依頼は「クライアント別」で確認）
+        // タスクがある担当者のみグループ化（タスクがない人は表示しない）
         $users = User::getInternalUsers();
+        $userMap = [];
+        foreach ($users as $user) {
+            $userMap[$user['id']] = $user;
+        }
         
         $grouped = [];
         
-        foreach ($users as $user) {
-            $grouped[$user['id']] = [
-                'assignee' => $user,
-                'tasks' => [],
-                'completed_tasks' => [],
-                'total_tasks' => User::getTaskCount($user['id']),
-            ];
-        }
-        
         foreach ($tasks as $task) {
             $assigneeId = $task['assignee_id'];
-            if ($assigneeId && isset($grouped[$assigneeId])) {
-                if ($task['status'] === 'done') {
-                    $grouped[$assigneeId]['completed_tasks'][] = $task;
-                } else {
-                    $grouped[$assigneeId]['tasks'][] = $task;
-                }
+            if (!$assigneeId || !isset($userMap[$assigneeId])) continue;
+            
+            // 初めて出現した担当者はグループを作成
+            if (!isset($grouped[$assigneeId])) {
+                $grouped[$assigneeId] = [
+                    'assignee' => $userMap[$assigneeId],
+                    'tasks' => [],
+                    'completed_tasks' => [],
+                    'total_tasks' => User::getTaskCount($assigneeId),
+                ];
+            }
+            
+            if ($task['status'] === 'done') {
+                $grouped[$assigneeId]['completed_tasks'][] = $task;
+            } else {
+                $grouped[$assigneeId]['tasks'][] = $task;
             }
         }
         
@@ -542,26 +547,33 @@ class Task
     {
         $filters['assignee_type'] = 'client';
         $tasks = self::getAll($filters);
+        
+        // タスクがあるクライアントのみグループ化（タスクがない人は表示しない）
         $clients = User::getClientUsers();
+        $clientMap = [];
+        foreach ($clients as $client) {
+            $clientMap[$client['id']] = $client;
+        }
         
         $grouped = [];
         
-        foreach ($clients as $client) {
-            $grouped[$client['id']] = [
-                'client' => $client,
-                'tasks' => [],
-                'completed_tasks' => [],
-            ];
-        }
-        
         foreach ($tasks as $task) {
             $clientId = $task['assignee_id'];
-            if ($clientId && isset($grouped[$clientId])) {
-                if ($task['status'] === 'done') {
-                    $grouped[$clientId]['completed_tasks'][] = $task;
-                } else {
-                    $grouped[$clientId]['tasks'][] = $task;
-                }
+            if (!$clientId || !isset($clientMap[$clientId])) continue;
+            
+            // 初めて出現したクライアントはグループを作成
+            if (!isset($grouped[$clientId])) {
+                $grouped[$clientId] = [
+                    'client' => $clientMap[$clientId],
+                    'tasks' => [],
+                    'completed_tasks' => [],
+                ];
+            }
+            
+            if ($task['status'] === 'done') {
+                $grouped[$clientId]['completed_tasks'][] = $task;
+            } else {
+                $grouped[$clientId]['tasks'][] = $task;
             }
         }
         
