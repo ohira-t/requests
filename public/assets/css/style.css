@@ -626,6 +626,16 @@ a.dropdown-item {
     overflow: hidden;
 }
 
+/* Allow scrolling for calendar view */
+body[data-view="calendar"] .app-main {
+    overflow-y: auto;
+}
+
+body[data-view="calendar"] .board-container {
+    overflow-y: visible;
+    height: auto;
+}
+
 .board-container {
     display: flex;
     gap: var(--column-gap);
@@ -633,6 +643,13 @@ a.dropdown-item {
     height: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+}
+
+/* Calendar view needs vertical scroll */
+.board-container:has(.calendar-view) {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
 }
 
 .board-column {
