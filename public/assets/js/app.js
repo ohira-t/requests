@@ -1673,6 +1673,18 @@ class App {
         });
 
         this.currentUserFilter = 'staff';
+
+        // Search inputs with debounce
+        const deptSearchInput = document.getElementById('department-search');
+        const userSearchInput = document.getElementById('user-search');
+        
+        deptSearchInput?.addEventListener('input', debounce(() => {
+            this.renderDepartmentList();
+        }, 150));
+        
+        userSearchInput?.addEventListener('input', debounce(() => {
+            this.renderUserList();
+        }, 150));
         
         // Edit mode buttons
         document.getElementById('edit-departments-btn')?.addEventListener('click', () => {
@@ -2177,66 +2189,85 @@ class App {
         }
     }
 
+    // Toggle pin status for a user (settings panel)
+    togglePinUserSettings(userId) {
+        const pinned = this.getPinnedUsers();
+        const id = parseInt(userId);
+        const index = pinned.indexOf(id);
+        if (index === -1) {
+            pinned.push(id);
+        } else {
+            pinned.splice(index, 1);
+        }
+        localStorage.setItem('pinnedUsers', JSON.stringify(pinned));
+        this.renderUserList();
+    }
+
     renderUserList() {
         const container = document.getElementById('user-list');
         const filterType = this.currentUserFilter || 'staff';
+        const searchInput = document.getElementById('user-search');
+        const searchQuery = (searchInput?.value || '').toLowerCase();
+        const pinnedUsers = this.getPinnedUsers();
 
-        const filteredUsers = this.users.filter(user => {
+        // Filter by type and search
+        let filteredUsers = this.users.filter(user => {
+            // Filter by type (staff/client)
             if (filterType === 'staff') {
-                return user.role !== 'client';
+                if (user.role === 'client') return false;
             } else {
-                return user.role === 'client';
+                if (user.role !== 'client') return false;
             }
+
+            // Filter by search
+            if (searchQuery) {
+                const searchFields = [
+                    user.name,
+                    user.email,
+                    user.company || '',
+                    user.department_name || ''
+                ].join(' ').toLowerCase();
+                return searchFields.includes(searchQuery);
+            }
+            return true;
         });
 
         if (filteredUsers.length === 0) {
-            const emptyText = filterType === 'client' ? 'クライアントがいません' : 'スタッフがいません';
+            const emptyText = searchQuery 
+                ? '該当するユーザーがいません'
+                : (filterType === 'client' ? 'クライアントがいません' : 'スタッフがいません');
             container.innerHTML = `<div class="settings-empty">${emptyText}</div>`;
             return;
         }
 
-        container.innerHTML = filteredUsers.map(user => {
-            const initials = user.name.charAt(0).toUpperCase();
-            const isClient = user.role === 'client';
-            const displayName = isClient && user.company ? user.company : user.name;
-            const roleBadgeClass = user.role === 'admin' ? 'admin' : (isClient ? 'client' : '');
-            const roleLabel = user.role === 'admin' ? '管理者' : (user.role === 'staff' ? 'スタッフ' : 'クライアント');
+        // Sort: pinned first
+        filteredUsers.sort((a, b) => {
+            const aPinned = pinnedUsers.includes(a.id);
+            const bPinned = pinnedUsers.includes(b.id);
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return 0;
+        });
 
-            const deptBadge = !isClient && user.department_name 
-                ? `<span class="dept-badge" style="background: ${user.department_color}20; color: ${user.department_color}">${escapeHtml(user.department_name)}</span>` 
-                : '';
+        // Separate pinned and unpinned
+        const pinnedList = filteredUsers.filter(u => pinnedUsers.includes(u.id));
+        const unpinnedList = filteredUsers.filter(u => !pinnedUsers.includes(u.id));
 
-            return `
-                <div class="user-item" data-id="${user.id}" draggable="false">
-                    <span class="drag-handle">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="4" y1="8" x2="20" y2="8"/>
-                            <line x1="4" y1="16" x2="20" y2="16"/>
-                        </svg>
-                    </span>
-                    <span class="user-avatar-sm ${isClient ? 'client' : 'staff'}">${initials}</span>
-                    <div class="user-info">
-                        <div class="name">${escapeHtml(displayName)}</div>
-                        <div class="email">${escapeHtml(user.email)}</div>
-                    </div>
-                    ${deptBadge}
-                    <span class="role-badge ${roleBadgeClass}">${roleLabel}</span>
-                    <div class="item-actions">
-                        <button class="icon-btn edit-user" title="編集">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <button class="delete-btn-edit" title="削除" data-id="${user.id}">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-        }).join('');
+        let html = '';
+        
+        if (pinnedList.length > 0 && !searchQuery) {
+            html += '<div class="settings-section-header">ピン留め</div>';
+            html += pinnedList.map(user => this.renderUserItem(user, true)).join('');
+        }
+        
+        if (unpinnedList.length > 0) {
+            if (pinnedList.length > 0 && !searchQuery) {
+                html += '<div class="settings-section-header">その他</div>';
+            }
+            html += unpinnedList.map(user => this.renderUserItem(user, false)).join('');
+        }
+
+        container.innerHTML = html;
 
         // Bind edit user events
         container.querySelectorAll('.edit-user').forEach(btn => {
@@ -2258,6 +2289,62 @@ class App {
                 this.deleteUser(id);
             });
         });
+
+        // Bind pin button events
+        container.querySelectorAll('.pin-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePinUserSettings(btn.dataset.id);
+            });
+        });
+    }
+
+    renderUserItem(user, isPinned) {
+        const initials = user.name.charAt(0).toUpperCase();
+        const isClient = user.role === 'client';
+        const displayName = isClient && user.company ? user.company : user.name;
+        const roleBadgeClass = user.role === 'admin' ? 'admin' : (isClient ? 'client' : '');
+        const roleLabel = user.role === 'admin' ? '管理者' : (user.role === 'staff' ? 'スタッフ' : 'クライアント');
+
+        const deptBadge = !isClient && user.department_name 
+            ? `<span class="dept-badge" style="background: ${user.department_color}20; color: ${user.department_color}">${escapeHtml(user.department_name)}</span>` 
+            : '';
+
+        return `
+            <div class="user-item" data-id="${user.id}" draggable="false">
+                <span class="drag-handle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="8" x2="20" y2="8"/>
+                        <line x1="4" y1="16" x2="20" y2="16"/>
+                    </svg>
+                </span>
+                <span class="user-avatar-sm ${isClient ? 'client' : 'staff'}">${initials}</span>
+                <div class="user-info">
+                    <div class="name">${escapeHtml(displayName)}</div>
+                    <div class="email">${escapeHtml(user.email)}</div>
+                </div>
+                ${deptBadge}
+                <span class="role-badge ${roleBadgeClass}">${roleLabel}</span>
+                <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" data-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                </button>
+                <div class="item-actions">
+                    <button class="icon-btn edit-user" title="編集">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                </div>
+                <button class="delete-btn-edit" title="削除" data-id="${user.id}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
     }
 
     async deleteUser(id) {
@@ -2304,16 +2391,109 @@ class App {
         }
     }
 
+    // Get pinned departments from localStorage
+    getPinnedDepartments() {
+        try {
+            return JSON.parse(localStorage.getItem('pinnedDepartments') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    // Toggle pin status for a department
+    togglePinDepartment(deptId) {
+        const pinned = this.getPinnedDepartments();
+        const id = parseInt(deptId);
+        const index = pinned.indexOf(id);
+        if (index === -1) {
+            pinned.push(id);
+        } else {
+            pinned.splice(index, 1);
+        }
+        localStorage.setItem('pinnedDepartments', JSON.stringify(pinned));
+        this.renderDepartmentList();
+    }
+
     // Department management
     renderDepartmentList() {
         const container = document.getElementById('department-list');
+        const searchInput = document.getElementById('department-search');
+        const searchQuery = (searchInput?.value || '').toLowerCase();
+        const pinnedDepts = this.getPinnedDepartments();
 
-        if (this.departments.length === 0) {
-            container.innerHTML = '<div class="settings-empty">部署がありません</div>';
+        // Filter by search
+        let filteredDepts = this.departments.filter(dept => {
+            if (searchQuery) {
+                return dept.name.toLowerCase().includes(searchQuery);
+            }
+            return true;
+        });
+
+        if (filteredDepts.length === 0) {
+            container.innerHTML = searchQuery 
+                ? '<div class="settings-empty">該当する部署がありません</div>'
+                : '<div class="settings-empty">部署がありません</div>';
             return;
         }
 
-        container.innerHTML = this.departments.map(dept => `
+        // Sort: pinned first
+        filteredDepts.sort((a, b) => {
+            const aPinned = pinnedDepts.includes(a.id);
+            const bPinned = pinnedDepts.includes(b.id);
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return 0;
+        });
+
+        // Separate pinned and unpinned
+        const pinnedList = filteredDepts.filter(d => pinnedDepts.includes(d.id));
+        const unpinnedList = filteredDepts.filter(d => !pinnedDepts.includes(d.id));
+
+        let html = '';
+        
+        if (pinnedList.length > 0 && !searchQuery) {
+            html += '<div class="settings-section-header">ピン留め</div>';
+            html += pinnedList.map(dept => this.renderDepartmentItem(dept, true)).join('');
+        }
+        
+        if (unpinnedList.length > 0) {
+            if (pinnedList.length > 0 && !searchQuery) {
+                html += '<div class="settings-section-header">その他</div>';
+            }
+            html += unpinnedList.map(dept => this.renderDepartmentItem(dept, false)).join('');
+        }
+
+        container.innerHTML = html;
+
+        // Bind events
+        container.querySelectorAll('.edit-department').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const item = e.target.closest('.department-item');
+                const id = parseInt(item.dataset.id);
+                const dept = this.departments.find(d => d.id === id);
+                if (dept) {
+                    this.editDepartment(dept);
+                }
+            });
+        });
+
+        container.querySelectorAll('.delete-department, .department-item .delete-btn-edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.closest('.department-item').dataset.id;
+                this.deleteDepartment(parseInt(id));
+            });
+        });
+
+        container.querySelectorAll('.pin-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePinDepartment(btn.dataset.id);
+            });
+        });
+    }
+
+    renderDepartmentItem(dept, isPinned) {
+        return `
             <div class="department-item" data-id="${dept.id}" draggable="false">
                 <span class="drag-handle">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2324,6 +2504,11 @@ class App {
                 <span class="color-dot" style="background: ${dept.color}"></span>
                 <span class="name">${escapeHtml(dept.name)}</span>
                 <span class="count">${dept.user_count || 0}人</span>
+                <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" data-id="${dept.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                </button>
                 <div class="item-actions">
                     <button class="icon-btn edit-department" title="編集">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2344,25 +2529,7 @@ class App {
                     </svg>
                 </button>
             </div>
-        `).join('');
-
-        container.querySelectorAll('.edit-department').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const item = e.target.closest('.department-item');
-                const id = parseInt(item.dataset.id);
-                const dept = this.departments.find(d => d.id === id);
-                if (dept) {
-                    this.editDepartment(dept);
-                }
-            });
-        });
-
-        container.querySelectorAll('.delete-department, .department-item .delete-btn-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.target.closest('.department-item').dataset.id;
-                this.deleteDepartment(parseInt(id));
-            });
-        });
+        `;
     }
 
     async addDepartment() {
