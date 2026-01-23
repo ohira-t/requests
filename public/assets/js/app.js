@@ -1208,11 +1208,21 @@ class App {
         const taskId = parseInt(this.draggedTask.dataset.id);
         const oldCategoryId = this.draggedTask.dataset.category;
 
+        // Normalize category IDs for comparison (treat "0", "null", "", null, undefined as uncategorized)
+        const normalizeCategory = (cat) => {
+            if (cat === '0' || cat === 'null' || cat === '' || cat === null || cat === undefined) {
+                return null;
+            }
+            return String(cat);
+        };
+        const normalizedNew = normalizeCategory(newCategoryId);
+        const normalizedOld = normalizeCategory(oldCategoryId);
+
         // Save to server
         try {
-            if (newCategoryId !== oldCategoryId) {
-                // Update task category (use null for "未分類" which has id=0)
-                const categoryValue = newCategoryId === '0' || newCategoryId === 0 ? null : parseInt(newCategoryId);
+            if (normalizedNew !== normalizedOld) {
+                // Update task category (use null for "未分類")
+                const categoryValue = normalizedNew === null ? null : parseInt(newCategoryId);
                 await api.updateTask(taskId, { category_id: categoryValue });
                 this.draggedTask.dataset.category = newCategoryId;
             }
@@ -1236,7 +1246,7 @@ class App {
         return `
             <div class="task-card ${isCompact ? 'compact' : ''} ${task.status === 'done' ? 'completed' : ''} ${isOwn && this.currentView === 'clients' ? 'own-task' : ''}" 
                  data-id="${task.id}" 
-                 data-category="${task.category_id}"
+                 data-category="${task.category_id || '0'}"
                  ${isDraggable ? 'draggable="true"' : ''}>
                 <div class="task-card-header">
                     ${isDraggable ? `<span class="task-drag-handle">
