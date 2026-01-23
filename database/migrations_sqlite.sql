@@ -18,15 +18,17 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (department_id) REFERENCES departments(id)
 );
 
--- Categories table
+-- Categories table (user-specific)
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     color TEXT DEFAULT '#6366F1',
     display_order INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    deleted_at DATETIME
+    deleted_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Tasks table

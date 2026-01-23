@@ -18,9 +18,9 @@ class CategoryController
         $withCounts = isset($_GET['with_counts']) && $_GET['with_counts'] === '1';
         
         if ($withCounts) {
-            $categories = Category::getWithTaskCounts();
+            $categories = Category::getWithTaskCountsByUser($user['id']);
         } else {
-            $categories = Category::getAll();
+            $categories = Category::getAllByUser($user['id']);
         }
         
         Response::success($categories);
@@ -31,7 +31,7 @@ class CategoryController
         $user = AuthMiddleware::handle();
         if (!$user) return;
         
-        $category = Category::findById($id);
+        $category = Category::findByIdAndUser($id, $user['id']);
         
         if (!$category) {
             Response::notFound('カテゴリーが見つかりません');
@@ -58,6 +58,9 @@ class CategoryController
             return;
         }
         
+        // Add user_id to data
+        $data['user_id'] = $user['id'];
+        
         $categoryId = Category::create($data);
         $category = Category::findById($categoryId);
         
@@ -69,7 +72,8 @@ class CategoryController
         $user = StaffMiddleware::handle();
         if (!$user) return;
         
-        $category = Category::findById($id);
+        // Check ownership
+        $category = Category::findByIdAndUser($id, $user['id']);
         
         if (!$category) {
             Response::notFound('カテゴリーが見つかりません');
@@ -87,7 +91,7 @@ class CategoryController
             return;
         }
         
-        Category::update($id, $data);
+        Category::update($id, $data, $user['id']);
         $category = Category::findById($id);
         
         Response::success($category);
@@ -98,14 +102,15 @@ class CategoryController
         $user = StaffMiddleware::handle();
         if (!$user) return;
         
-        $category = Category::findById($id);
+        // Check ownership
+        $category = Category::findByIdAndUser($id, $user['id']);
         
         if (!$category) {
             Response::notFound('カテゴリーが見つかりません');
             return;
         }
         
-        Category::delete($id);
+        Category::delete($id, $user['id']);
         
         Response::success(['message' => 'カテゴリーを削除しました']);
     }
@@ -122,7 +127,7 @@ class CategoryController
             return;
         }
         
-        Category::reorderWithObjects($data['categories']);
+        Category::reorderWithObjects($data['categories'], $user['id']);
         
         Response::success(['message' => '並び替えを保存しました']);
     }

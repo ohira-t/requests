@@ -14,6 +14,14 @@ class Category
         );
     }
     
+    public static function findByIdAndUser(int $id, int $userId): ?array
+    {
+        return Database::fetch(
+            "SELECT * FROM categories WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            [$id, $userId]
+        );
+    }
+    
     public static function getAll(): array
     {
         return Database::fetchAll(
@@ -21,20 +29,30 @@ class Category
         );
     }
     
+    public static function getAllByUser(int $userId): array
+    {
+        return Database::fetchAll(
+            "SELECT * FROM categories WHERE user_id = ? AND deleted_at IS NULL ORDER BY display_order ASC, name ASC",
+            [$userId]
+        );
+    }
+    
     public static function create(array $data): int
     {
         $maxOrder = Database::fetch(
-            "SELECT MAX(display_order) as max_order FROM categories WHERE deleted_at IS NULL"
+            "SELECT MAX(display_order) as max_order FROM categories WHERE user_id = ? AND deleted_at IS NULL",
+            [$data['user_id']]
         );
         
         return Database::insert('categories', [
+            'user_id' => $data['user_id'],
             'name' => $data['name'],
             'color' => $data['color'] ?? '#3B82F6',
             'display_order' => ($maxOrder['max_order'] ?? 0) + 1,
         ]);
     }
     
-    public static function update(int $id, array $data): bool
+    public static function update(int $id, array $data, int $userId = null): bool
     {
         $updateData = [];
         
@@ -52,11 +70,17 @@ class Category
             return true;
         }
         
+        if ($userId) {
+            return Database::update('categories', $updateData, 'id = ? AND user_id = ? AND deleted_at IS NULL', [$id, $userId]) > 0;
+        }
         return Database::update('categories', $updateData, 'id = ? AND deleted_at IS NULL', [$id]) > 0;
     }
     
-    public static function delete(int $id): bool
+    public static function delete(int $id, int $userId = null): bool
     {
+        if ($userId) {
+            return Database::softDelete('categories', 'id = ? AND user_id = ?', [$id, $userId]) > 0;
+        }
         return Database::softDelete('categories', 'id = ?', [$id]) > 0;
     }
     
@@ -81,19 +105,28 @@ class Category
         }
     }
     
-    public static function reorderWithObjects(array $categories): bool
+    public static function reorderWithObjects(array $categories, int $userId = null): bool
     {
         Database::beginTransaction();
         
         try {
             foreach ($categories as $item) {
                 if (isset($item['id']) && isset($item['sort_order'])) {
-                    Database::update(
-                        'categories',
-                        ['display_order' => (int)$item['sort_order'] + 1],
-                        'id = ?',
-                        [(int)$item['id']]
-                    );
+                    if ($userId) {
+                        Database::update(
+                            'categories',
+                            ['display_order' => (int)$item['sort_order'] + 1],
+                            'id = ? AND user_id = ?',
+                            [(int)$item['id'], $userId]
+                        );
+                    } else {
+                        Database::update(
+                            'categories',
+                            ['display_order' => (int)$item['sort_order'] + 1],
+                            'id = ?',
+                            [(int)$item['id']]
+                        );
+                    }
                 }
             }
             Database::commit();
@@ -114,7 +147,7 @@ class Category
         return $result['count'] ?? 0;
     }
     
-    public static function getWithTaskCounts(): array
+    public static function getWithTaskCountsByUser(int $userId): array
     {
         return Database::fetchAll(
             "SELECT c.*, 
@@ -122,9 +155,10 @@ class Category
                     COUNT(CASE WHEN t.status = 'done' AND t.deleted_at IS NULL THEN 1 END) as completed_count
              FROM categories c
              LEFT JOIN tasks t ON c.id = t.category_id
-             WHERE c.deleted_at IS NULL
+             WHERE c.user_id = ? AND c.deleted_at IS NULL
              GROUP BY c.id
-             ORDER BY c.display_order ASC, c.name ASC"
+             ORDER BY c.display_order ASC, c.name ASC",
+            [$userId]
         );
     }
 }

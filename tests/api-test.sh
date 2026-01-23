@@ -212,10 +212,21 @@ test_api "スタッフがタスク取得" "GET" "/tasks" "" "success"
 test_api "スタッフが部署一覧取得" "GET" "/departments" "" "success"
 test_api "スタッフがカレンダー取得" "GET" "/tasks/calendar?start=${YEAR}-${MONTH}-01&end=${YEAR}-${MONTH}-31" "" "success"
 
-# Staff can create categories
+# Staff can create their own categories
 test_api "スタッフがカテゴリ作成" "POST" "/categories" '{"name":"スタッフカテゴリ","color":"#3366FF"}' "success"
 STAFF_CAT_RESPONSE=$(curl -s -b "$COOKIE_FILE" "${BASE_URL}/categories")
 STAFF_CAT_ID=$(echo "$STAFF_CAT_RESPONSE" | sed 's/},{/}\n{/g' | grep 'スタッフカテゴリ' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+
+# Verify user-specific categories (staff should not see admin's test category if it exists)
+TOTAL=$((TOTAL + 1))
+if echo "$STAFF_CAT_RESPONSE" | grep -q "テストカテゴリ更新"; then
+    echo -e "  ${RED}✗${NC} #$TOTAL スタッフが他ユーザーのカテゴリを見れてしまった"
+    FAIL=$((FAIL + 1))
+else
+    echo -e "  ${GREEN}✓${NC} #$TOTAL カテゴリはユーザー固有（他ユーザーのカテゴリは非表示）"
+    PASS=$((PASS + 1))
+fi
+
 if [ -n "$STAFF_CAT_ID" ]; then
     test_api "スタッフがカテゴリ削除" "DELETE" "/categories/$STAFF_CAT_ID" "" "success"
 fi
