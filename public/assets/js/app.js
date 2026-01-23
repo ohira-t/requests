@@ -1929,7 +1929,8 @@ class App {
 
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = parseInt(document.getElementById('user-edit-id').value);
+            const idValue = document.getElementById('user-edit-id').value;
+            const id = idValue ? parseInt(idValue) : null;
             const name = document.getElementById('user-edit-name').value.trim();
             const email = document.getElementById('user-edit-email').value.trim();
             const role = document.getElementById('user-edit-role').value;
@@ -1955,13 +1956,42 @@ class App {
                 data.department_id = departmentId ? parseInt(departmentId) : null;
             }
 
-            await this.updateUser(id, data);
+            if (id) {
+                // Update existing user
+                await this.updateUser(id, data);
+            } else {
+                // Create new user
+                await this.createUser(data);
+            }
         });
     }
+    
+    async createUser(data) {
+        const submitBtn = document.getElementById('user-edit-submit');
+        
+        submitBtn.querySelector('.btn-text').style.display = 'none';
+        submitBtn.querySelector('.btn-loading').style.display = 'flex';
+        submitBtn.disabled = true;
 
-    openEditUserModal(user) {
+        try {
+            await api.createUser(data);
+            await this.loadUsers();
+            this.renderUserList();
+            this.closeUserEditModal();
+            const isClient = data.role === 'client';
+            this.showToast(isClient ? 'クライアントを追加しました' : 'ユーザーを追加しました', 'success');
+        } catch (error) {
+            this.showToast(error.message, 'error');
+        } finally {
+            submitBtn.querySelector('.btn-text').style.display = 'inline';
+            submitBtn.querySelector('.btn-loading').style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    }
+
+    openEditUserModal(user, isNew = false) {
         // Staff cannot edit admin users
-        if (this.user?.role !== 'admin' && user.role === 'admin') {
+        if (!isNew && this.user?.role !== 'admin' && user.role === 'admin') {
             this.showToast('管理者ユーザーは編集できません', 'error');
             return;
         }
@@ -1971,12 +2001,29 @@ class App {
         const departmentGroup = document.getElementById('user-edit-department-group');
         const departmentSelect = document.getElementById('user-edit-department');
         const roleSelect = document.getElementById('user-edit-role');
+        const passwordInput = document.getElementById('user-edit-password');
+        const passwordLabel = passwordInput?.previousElementSibling;
+        const title = document.getElementById('user-edit-title');
         
-        document.getElementById('user-edit-id').value = user.id;
-        document.getElementById('user-edit-name').value = user.name;
-        document.getElementById('user-edit-email').value = user.email;
+        // Set title
+        if (title) {
+            title.textContent = isNew ? 'ユーザーを追加' : 'ユーザーを編集';
+        }
+        
+        document.getElementById('user-edit-id').value = user.id || '';
+        document.getElementById('user-edit-name').value = user.name || '';
+        document.getElementById('user-edit-email').value = user.email || '';
         document.getElementById('user-edit-password').value = '';
         document.getElementById('user-edit-company').value = user.company || '';
+        
+        // Password is required for new users
+        if (passwordLabel) {
+            passwordLabel.textContent = isNew ? 'パスワード *' : 'パスワード（変更する場合のみ）';
+        }
+        if (passwordInput) {
+            passwordInput.required = isNew;
+            passwordInput.placeholder = isNew ? '必須' : '変更しない場合は空欄';
+        }
 
         // Update role options based on current user's role
         if (this.user?.role === 'admin') {
@@ -1991,7 +2038,7 @@ class App {
                 <option value="client">クライアント</option>
             `;
         }
-        roleSelect.value = user.role;
+        roleSelect.value = user.role || 'staff';
 
         // Populate department dropdown
         departmentSelect.innerHTML = '<option value="">未設定</option>' +
@@ -2159,31 +2206,17 @@ class App {
         }
     }
 
-    async addUser() {
+    addUser() {
+        // Open edit modal in create mode
         const isClient = this.currentUserFilter === 'client';
-        const name = prompt(isClient ? 'クライアント名（会社名）を入力してください:' : 'スタッフ名を入力してください:');
-        if (!name) return;
-
-        const email = prompt('メールアドレスを入力してください:');
-        if (!email) return;
-
-        const password = prompt('初期パスワードを入力してください:');
-        if (!password) return;
-
-        try {
-            await api.createUser({
-                name,
-                email,
-                password,
-                role: isClient ? 'client' : 'staff',
-                company: isClient ? name : null
-            });
-            await this.loadUsers();
-            this.renderUserList();
-            this.showToast(isClient ? 'クライアントを追加しました' : 'スタッフを追加しました', 'success');
-        } catch (error) {
-            this.showToast(error.message, 'error');
-        }
+        this.openEditUserModal({
+            id: null,
+            name: '',
+            email: '',
+            role: isClient ? 'client' : 'staff',
+            company: '',
+            department_id: null
+        }, true);
     }
 
     addCategory() {
