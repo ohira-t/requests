@@ -1577,6 +1577,10 @@ class App {
                 panels.forEach(p => {
                     p.classList.toggle('active', p.id === `panel-${targetTab}`);
                 });
+                
+                // Exit edit mode when switching tabs
+                this.exitEditMode('departments');
+                this.exitEditMode('users');
             });
         });
 
@@ -1587,6 +1591,9 @@ class App {
                 btn.classList.add('active');
                 this.currentUserFilter = btn.dataset.userType;
                 this.renderUserList();
+                
+                // Exit edit mode when switching user type
+                this.exitEditMode('users');
 
                 // Update add button text
                 const addBtnText = document.getElementById('add-user-btn-text');
@@ -1599,6 +1606,146 @@ class App {
         });
 
         this.currentUserFilter = 'staff';
+        
+        // Edit mode buttons
+        document.getElementById('edit-departments-btn')?.addEventListener('click', () => {
+            this.toggleEditMode('departments');
+        });
+        
+        document.getElementById('edit-users-btn')?.addEventListener('click', () => {
+            this.toggleEditMode('users');
+        });
+    }
+    
+    // Edit Mode Management
+    toggleEditMode(type) {
+        const btn = document.getElementById(`edit-${type}-btn`);
+        const list = document.getElementById(`${type === 'departments' ? 'department' : 'user'}-list`);
+        
+        if (!btn || !list) return;
+        
+        const isEditMode = list.classList.contains('edit-mode');
+        
+        if (isEditMode) {
+            this.exitEditMode(type);
+        } else {
+            this.enterEditMode(type);
+        }
+    }
+    
+    enterEditMode(type) {
+        const btn = document.getElementById(`edit-${type}-btn`);
+        const list = document.getElementById(`${type === 'departments' ? 'department' : 'user'}-list`);
+        
+        if (!btn || !list) return;
+        
+        btn.textContent = '完了';
+        btn.classList.add('active');
+        list.classList.add('edit-mode');
+        
+        // Enable draggable
+        list.querySelectorAll(`.${type === 'departments' ? 'department' : 'user'}-item`).forEach(item => {
+            item.draggable = true;
+            item.addEventListener('dragstart', (e) => this.handleListDragStart(e, type));
+            item.addEventListener('dragend', (e) => this.handleListDragEnd(e, type));
+            item.addEventListener('dragover', (e) => this.handleListDragOver(e));
+            item.addEventListener('dragleave', (e) => this.handleListDragLeave(e));
+            item.addEventListener('drop', (e) => this.handleListDrop(e, type));
+        });
+    }
+    
+    async exitEditMode(type) {
+        const btn = document.getElementById(`edit-${type}-btn`);
+        const list = document.getElementById(`${type === 'departments' ? 'department' : 'user'}-list`);
+        
+        if (!btn || !list) return;
+        
+        if (!list.classList.contains('edit-mode')) return;
+        
+        btn.textContent = '編集';
+        btn.classList.remove('active');
+        list.classList.remove('edit-mode');
+        
+        // Save order
+        const items = list.querySelectorAll(`.${type === 'departments' ? 'department' : 'user'}-item`);
+        const order = Array.from(items).map((item, index) => ({
+            id: parseInt(item.dataset.id),
+            sort_order: index
+        }));
+        
+        try {
+            if (type === 'departments') {
+                await api.reorderDepartments(order);
+                await this.loadDepartments();
+            } else {
+                await api.reorderUsers(order);
+                await this.loadUsers();
+            }
+        } catch (error) {
+            this.showToast('並び替えの保存に失敗しました', 'error');
+        }
+        
+        // Disable draggable and re-render to clean up event listeners
+        if (type === 'departments') {
+            this.renderDepartmentList();
+        } else {
+            this.renderUserList();
+        }
+    }
+    
+    // List Drag & Drop
+    handleListDragStart(e, type) {
+        this.draggedListItem = e.target.closest(`.${type === 'departments' ? 'department' : 'user'}-item`);
+        if (this.draggedListItem) {
+            this.draggedListItem.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    }
+    
+    handleListDragEnd(e, type) {
+        if (this.draggedListItem) {
+            this.draggedListItem.classList.remove('dragging');
+            this.draggedListItem = null;
+        }
+        // Remove all drag-over classes
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    }
+    
+    handleListDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        const target = e.target.closest('.department-item, .user-item');
+        if (target && target !== this.draggedListItem) {
+            target.classList.add('drag-over');
+        }
+    }
+    
+    handleListDragLeave(e) {
+        const target = e.target.closest('.department-item, .user-item');
+        if (target) {
+            target.classList.remove('drag-over');
+        }
+    }
+    
+    handleListDrop(e, type) {
+        e.preventDefault();
+        
+        const target = e.target.closest(`.${type === 'departments' ? 'department' : 'user'}-item`);
+        if (!target || !this.draggedListItem || target === this.draggedListItem) return;
+        
+        target.classList.remove('drag-over');
+        
+        const list = target.parentNode;
+        const items = Array.from(list.children);
+        const draggedIndex = items.indexOf(this.draggedListItem);
+        const targetIndex = items.indexOf(target);
+        
+        if (draggedIndex < targetIndex) {
+            list.insertBefore(this.draggedListItem, target.nextSibling);
+        } else {
+            list.insertBefore(this.draggedListItem, target);
+        }
     }
 
     openSettingsModal() {
@@ -1946,7 +2093,13 @@ class App {
                 : '';
 
             return `
-                <div class="user-item" data-id="${user.id}">
+                <div class="user-item" data-id="${user.id}" draggable="false">
+                    <span class="drag-handle">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="4" y1="8" x2="20" y2="8"/>
+                            <line x1="4" y1="16" x2="20" y2="16"/>
+                        </svg>
+                    </span>
                     <span class="user-avatar-sm ${isClient ? 'client' : 'staff'}">${initials}</span>
                     <div class="user-info">
                         <div class="name">${escapeHtml(displayName)}</div>
@@ -1962,6 +2115,11 @@ class App {
                             </svg>
                         </button>
                     </div>
+                    <button class="delete-btn-edit" title="削除" data-id="${user.id}">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
                 </div>
             `;
         }).join('');
@@ -1977,6 +2135,28 @@ class App {
                 }
             });
         });
+
+        // Bind delete button (edit mode)
+        container.querySelectorAll('.user-item .delete-btn-edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = parseInt(e.currentTarget.dataset.id);
+                this.deleteUser(id);
+            });
+        });
+    }
+
+    async deleteUser(id) {
+        if (!confirm('このユーザーを削除しますか？')) return;
+
+        try {
+            await api.deleteUser(id);
+            await this.loadUsers();
+            this.renderUserList();
+            this.showToast('ユーザーを削除しました', 'success');
+        } catch (error) {
+            this.showToast(error.message, 'error');
+        }
     }
 
     async addUser() {
@@ -2034,7 +2214,13 @@ class App {
         }
 
         container.innerHTML = this.departments.map(dept => `
-            <div class="department-item" data-id="${dept.id}">
+            <div class="department-item" data-id="${dept.id}" draggable="false">
+                <span class="drag-handle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="8" x2="20" y2="8"/>
+                        <line x1="4" y1="16" x2="20" y2="16"/>
+                    </svg>
+                </span>
                 <span class="color-dot" style="background: ${dept.color}"></span>
                 <span class="name">${escapeHtml(dept.name)}</span>
                 <span class="count">${dept.user_count || 0}人</span>
@@ -2052,6 +2238,11 @@ class App {
                         </svg>
                     </button>
                 </div>
+                <button class="delete-btn-edit" title="削除">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
             </div>
         `).join('');
 
@@ -2066,7 +2257,7 @@ class App {
             });
         });
 
-        container.querySelectorAll('.delete-department').forEach(btn => {
+        container.querySelectorAll('.delete-department, .department-item .delete-btn-edit').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = e.target.closest('.department-item').dataset.id;
                 this.deleteDepartment(parseInt(id));

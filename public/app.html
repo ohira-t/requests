@@ -491,6 +491,10 @@
                     
                     <!-- Departments Tab -->
                     <div class="settings-panel" id="panel-departments">
+                        <div class="settings-panel-header">
+                            <span class="settings-panel-title">部署一覧</span>
+                            <button class="settings-edit-btn" id="edit-departments-btn">編集</button>
+                        </div>
                         <div class="settings-panel-content">
                             <div class="department-list" id="department-list">
                                 <!-- Departments will be rendered here -->
@@ -509,9 +513,12 @@
 
                     <!-- Users Tab -->
                     <div class="settings-panel" id="panel-users">
-                        <div class="settings-user-segment">
-                            <button type="button" class="segment-btn active" data-user-type="staff">社内</button>
-                            <button type="button" class="segment-btn" data-user-type="client">クライアント</button>
+                        <div class="settings-panel-header">
+                            <div class="settings-user-segment">
+                                <button type="button" class="segment-btn active" data-user-type="staff">社内</button>
+                                <button type="button" class="segment-btn" data-user-type="client">クライアント</button>
+                            </div>
+                            <button class="settings-edit-btn" id="edit-users-btn">編集</button>
                         </div>
                         <div class="settings-panel-content">
                             <div class="user-list" id="user-list">

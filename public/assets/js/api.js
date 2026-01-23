@@ -281,6 +281,10 @@ class API {
     async reorderDepartments(departments) {
         return this.put('/departments/reorder', { departments });
     }
+    
+    async reorderUsers(users) {
+        return this.put('/users/reorder', { users });
+    }
 }
 
 class APIError extends Error {

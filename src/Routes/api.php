@@ -137,6 +137,7 @@ function registerRoutes(): Router
     $router->get('/users', [$user, 'index']);
     $router->get('/users/internal', [$user, 'internalUsers']);
     $router->get('/users/clients', [$user, 'clientUsers']);
+    $router->put('/users/reorder', [$user, 'reorder']);  // Must be before {id} routes
     $router->get('/users/{id}', [$user, 'show']);
     $router->post('/users', [$user, 'store']);
     $router->put('/users/{id}', [$user, 'update']);

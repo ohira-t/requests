@@ -177,4 +177,21 @@ class UserController
         
         Response::success($users);
     }
+    
+    public function reorder(): void
+    {
+        $user = StaffMiddleware::handle();
+        if (!$user) return;
+        
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        if (empty($data['users']) || !is_array($data['users'])) {
+            Response::error('INVALID_DATA', 'ユーザーデータが不正です', 400);
+            return;
+        }
+        
+        User::reorder($data['users']);
+        
+        Response::success(['message' => '並び替えを保存しました']);
+    }
 }

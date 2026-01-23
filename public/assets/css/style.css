@@ -1521,6 +1521,114 @@ a.dropdown-item {
     background: white;
 }
 
+/* Settings Panel Header (Edit Mode) */
+.settings-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-bg-secondary);
+}
+
+.settings-panel-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.settings-edit-btn {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.settings-edit-btn:hover {
+    background: rgba(0, 122, 255, 0.1);
+}
+
+.settings-edit-btn.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* Drag Handle */
+.drag-handle {
+    display: none;
+    width: 24px;
+    height: 24px;
+    color: var(--color-text-disabled);
+    cursor: grab;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Edit Mode */
+.edit-mode .drag-handle {
+    display: flex;
+}
+
+.edit-mode .item-actions {
+    display: none;
+}
+
+.edit-mode .department-item,
+.edit-mode .user-item {
+    cursor: grab;
+    transition: all var(--transition-fast);
+}
+
+.edit-mode .department-item:active,
+.edit-mode .user-item:active {
+    cursor: grabbing;
+}
+
+.edit-mode .department-item.dragging,
+.edit-mode .user-item.dragging {
+    opacity: 0.5;
+    background: var(--color-bg-tertiary);
+}
+
+.edit-mode .department-item.drag-over,
+.edit-mode .user-item.drag-over {
+    border-top: 2px solid var(--color-primary);
+}
+
+/* Delete button in edit mode */
+.delete-btn-edit {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    background: var(--color-destructive);
+    color: white;
+    border: none;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+}
+
+.delete-btn-edit:hover {
+    transform: scale(1.1);
+}
+
+.edit-mode .delete-btn-edit {
+    display: flex;
+}
+
 .settings-user-segment {
     display: flex;
     padding: var(--spacing-md) var(--spacing-xl);

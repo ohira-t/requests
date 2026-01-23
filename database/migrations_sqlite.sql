@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     type TEXT NOT NULL DEFAULT 'internal' CHECK (type IN ('internal', 'client')),
     company TEXT,
     department_id INTEGER,
+    display_order INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME,

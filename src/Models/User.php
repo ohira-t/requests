@@ -60,9 +60,23 @@ class User
             $params[] = $filters['department_id'];
         }
         
-        $sql .= " ORDER BY u.type ASC, u.name ASC";
+        $sql .= " ORDER BY u.type ASC, u.display_order ASC, u.name ASC";
         
         return Database::fetchAll($sql, $params);
+    }
+    
+    public static function reorder(array $users): void
+    {
+        foreach ($users as $userData) {
+            if (isset($userData['id']) && isset($userData['sort_order'])) {
+                Database::update(
+                    'users',
+                    ['display_order' => $userData['sort_order']],
+                    'id = ?',
+                    [$userData['id']]
+                );
+            }
+        }
     }
     
     public static function getInternalUsers(): array
