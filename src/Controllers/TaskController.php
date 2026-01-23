@@ -76,7 +76,8 @@ class TaskController
         if (isset($_GET['grouped'])) {
             switch ($_GET['grouped']) {
                 case 'category':
-                    $data = Task::getGroupedByCategory($filters);
+                    // Pass user_id to filter categories to only this user's categories
+                    $data = Task::getGroupedByCategory($filters, $user['id']);
                     break;
                 case 'assignee':
                     $data = Task::getGroupedByAssignee($filters);

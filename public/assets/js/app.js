@@ -218,6 +218,29 @@ class App {
         if (searchInput) searchInput.value = '';
     }
 
+    // Get pinned users from localStorage
+    getPinnedUsers() {
+        try {
+            return JSON.parse(localStorage.getItem('pinnedUsers') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    // Toggle pin status for a user
+    togglePinUser(userId) {
+        const pinned = this.getPinnedUsers();
+        const id = parseInt(userId);
+        const index = pinned.indexOf(id);
+        if (index === -1) {
+            pinned.push(id);
+        } else {
+            pinned.splice(index, 1);
+        }
+        localStorage.setItem('pinnedUsers', JSON.stringify(pinned));
+        this.renderAssigneeList();
+    }
+
     renderAssigneeList() {
         const list = document.getElementById('assignee-list');
         const searchInput = document.getElementById('assignee-search');
@@ -227,6 +250,7 @@ class App {
         const searchQuery = (searchInput?.value || '').toLowerCase();
         const filterType = this.assigneeFilterType || 'staff';
         const currentValue = document.getElementById('task-assignee')?.value || '';
+        const pinnedUsers = this.getPinnedUsers();
 
         // Filter users
         let filteredUsers = this.users.filter(user => {
@@ -243,6 +267,19 @@ class App {
             }
             return true;
         });
+
+        // Sort: pinned first, then alphabetically
+        filteredUsers.sort((a, b) => {
+            const aPinned = pinnedUsers.includes(a.id);
+            const bPinned = pinnedUsers.includes(b.id);
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
+            return (a.name || '').localeCompare(b.name || '', 'ja');
+        });
+
+        // Separate pinned and unpinned
+        const pinnedInList = filteredUsers.filter(u => pinnedUsers.includes(u.id));
+        const unpinnedInList = filteredUsers.filter(u => !pinnedUsers.includes(u.id));
 
         // Build HTML
         let html = `
@@ -265,35 +302,63 @@ class App {
         if (filteredUsers.length === 0) {
             html += `<div class="sheet-empty">該当するユーザーがいません</div>`;
         } else {
-            html += filteredUsers.map(user => {
-                const initials = user.name.charAt(0).toUpperCase();
-                const isClient = user.role === 'client';
-                const isSelected = currentValue === String(user.id);
-                const displayName = isClient && user.company ? user.company : user.name;
+            // Show pinned section
+            if (pinnedInList.length > 0 && !searchQuery) {
+                html += `<div class="sheet-list-section">ピン留め</div>`;
+                html += pinnedInList.map(user => this.renderAssigneeItem(user, currentValue, true)).join('');
+            }
 
-                return `
-                    <button type="button" class="sheet-list-item ${isSelected ? 'selected' : ''}" data-value="${user.id}">
-                        <span class="sheet-list-item-avatar ${isClient ? 'client' : 'staff'}">${escapeHtml(initials)}</span>
-                        <div class="sheet-list-item-info">
-                            <div class="sheet-list-item-name">${escapeHtml(displayName)}</div>
-                            <div class="sheet-list-item-email">${escapeHtml(user.email)}</div>
-                        </div>
-                        <svg class="sheet-list-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </button>
-                `;
-            }).join('');
+            // Show other section
+            if (unpinnedInList.length > 0) {
+                if (pinnedInList.length > 0 && !searchQuery) {
+                    html += `<div class="sheet-list-section">その他</div>`;
+                }
+                html += unpinnedInList.map(user => this.renderAssigneeItem(user, currentValue, false)).join('');
+            }
         }
 
         list.innerHTML = html;
 
         // Bind click events
         list.querySelectorAll('.sheet-list-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.pin-btn')) return;
                 this.selectAssignee(item.dataset.value);
             });
         });
+
+        // Bind pin button events
+        list.querySelectorAll('.pin-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.togglePinUser(btn.dataset.userId);
+            });
+        });
+    }
+
+    renderAssigneeItem(user, currentValue, isPinned) {
+        const initials = user.name.charAt(0).toUpperCase();
+        const isClient = user.role === 'client';
+        const isSelected = currentValue === String(user.id);
+        const displayName = isClient && user.company ? user.company : user.name;
+
+        return `
+            <button type="button" class="sheet-list-item ${isSelected ? 'selected' : ''}" data-value="${user.id}">
+                <span class="sheet-list-item-avatar ${isClient ? 'client' : 'staff'}">${escapeHtml(initials)}</span>
+                <div class="sheet-list-item-info">
+                    <div class="sheet-list-item-name">${escapeHtml(displayName)}</div>
+                    <div class="sheet-list-item-email">${escapeHtml(user.email)}</div>
+                </div>
+                <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" data-user-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                </button>
+                <svg class="sheet-list-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </button>
+        `;
     }
 
     selectAssignee(value) {

@@ -468,14 +468,23 @@ class Task
         return false;
     }
     
-    public static function getGroupedByCategory(array $filters = []): array
+    public static function getGroupedByCategory(array $filters = [], int $userId = null): array
     {
         $tasks = self::getAll($filters);
-        $categories = Category::getAll();
+        
+        // Get categories for specific user, or all if no user specified
+        if ($userId) {
+            $categories = Category::getAllByUser($userId);
+        } else {
+            $categories = Category::getAll();
+        }
         
         $grouped = [];
         
+        // Build a set of valid category IDs for this user
+        $validCategoryIds = [];
         foreach ($categories as $category) {
+            $validCategoryIds[$category['id']] = true;
             $grouped[$category['id']] = [
                 'category' => $category,
                 'tasks' => [],
@@ -485,14 +494,15 @@ class Task
         
         // Add "未分類" category
         $grouped[0] = [
-            'category' => ['id' => 0, 'name' => '未分類', 'color' => '#8E8E93'],
+            'category' => ['id' => 0, 'name' => '未分類', 'color' => '#8E8E93', 'display_order' => 9999],
             'tasks' => [],
             'completed_tasks' => [],
         ];
         
         foreach ($tasks as $task) {
             $catId = $task['category_id'] ?? 0;
-            if (!isset($grouped[$catId])) {
+            // If category doesn't belong to this user, put in 未分類
+            if (!isset($validCategoryIds[$catId])) {
                 $catId = 0;
             }
             
