@@ -100,6 +100,7 @@ class User
             'role' => $data['role'] ?? 'staff',
             'type' => $data['type'] ?? 'internal',
             'company' => $data['company'] ?? null,
+            'department_id' => $data['department_id'] ?? null,
         ]);
     }
     
