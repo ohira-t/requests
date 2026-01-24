@@ -1813,6 +1813,7 @@ class App {
                 });
                 
                 // Exit edit mode when switching tabs
+                this.exitEditMode('categories');
                 this.exitEditMode('departments');
                 this.exitEditMode('users');
                 
@@ -1847,8 +1848,13 @@ class App {
         this.currentUserFilter = 'staff';
 
         // Search inputs with debounce
+        const categorySearchInput = document.getElementById('category-search');
         const deptSearchInput = document.getElementById('department-search');
         const userSearchInput = document.getElementById('user-search');
+        
+        categorySearchInput?.addEventListener('input', debounce(() => {
+            this.renderCategoryList();
+        }, 150));
         
         deptSearchInput?.addEventListener('input', debounce(() => {
             this.renderDepartmentList();
@@ -1858,7 +1864,27 @@ class App {
             this.renderUserList();
         }, 150));
         
+        // Clear search buttons
+        document.getElementById('category-search-clear')?.addEventListener('click', () => {
+            document.getElementById('category-search').value = '';
+            this.renderCategoryList();
+        });
+        
+        document.getElementById('department-search-clear')?.addEventListener('click', () => {
+            document.getElementById('department-search').value = '';
+            this.renderDepartmentList();
+        });
+        
+        document.getElementById('user-search-clear')?.addEventListener('click', () => {
+            document.getElementById('user-search').value = '';
+            this.renderUserList();
+        });
+        
         // Edit mode buttons
+        document.getElementById('edit-categories-btn')?.addEventListener('click', () => {
+            this.toggleEditMode('categories');
+        });
+        
         document.getElementById('edit-departments-btn')?.addEventListener('click', () => {
             this.toggleEditMode('departments');
         });
@@ -1871,7 +1897,10 @@ class App {
     // Edit Mode Management
     toggleEditMode(type) {
         const btn = document.getElementById(`edit-${type}-btn`);
-        const list = document.getElementById(`${type === 'departments' ? 'department' : 'user'}-list`);
+        const listId = type === 'categories' ? 'category-list' : 
+                       type === 'departments' ? 'department-list' : 
+                       'user-list';
+        const list = document.getElementById(listId);
         
         if (!btn || !list) return;
         
@@ -1886,7 +1915,10 @@ class App {
     
     enterEditMode(type) {
         const btn = document.getElementById(`edit-${type}-btn`);
-        const list = document.getElementById(`${type === 'departments' ? 'department' : 'user'}-list`);
+        const listId = type === 'categories' ? 'category-list' : 
+                       type === 'departments' ? 'department-list' : 
+                       'user-list';
+        const list = document.getElementById(listId);
         
         if (!btn || !list) return;
         
@@ -1895,7 +1927,10 @@ class App {
         list.classList.add('edit-mode');
         
         // Enable draggable
-        list.querySelectorAll(`.${type === 'departments' ? 'department' : 'user'}-item`).forEach(item => {
+        const itemClass = type === 'categories' ? 'category-item' : 
+                          type === 'departments' ? 'department-item' : 
+                          'user-item';
+        list.querySelectorAll(`.${itemClass}`).forEach(item => {
             item.draggable = true;
             item.addEventListener('dragstart', (e) => this.handleListDragStart(e, type));
             item.addEventListener('dragend', (e) => this.handleListDragEnd(e, type));
@@ -1907,7 +1942,10 @@ class App {
     
     async exitEditMode(type) {
         const btn = document.getElementById(`edit-${type}-btn`);
-        const list = document.getElementById(`${type === 'departments' ? 'department' : 'user'}-list`);
+        const listId = type === 'categories' ? 'category-list' : 
+                       type === 'departments' ? 'department-list' : 
+                       'user-list';
+        const list = document.getElementById(listId);
         
         if (!btn || !list) return;
         
@@ -1918,14 +1956,20 @@ class App {
         list.classList.remove('edit-mode');
         
         // Save order
-        const items = list.querySelectorAll(`.${type === 'departments' ? 'department' : 'user'}-item`);
+        const itemClass = type === 'categories' ? 'category-item' : 
+                          type === 'departments' ? 'department-item' : 
+                          'user-item';
+        const items = list.querySelectorAll(`.${itemClass}`);
         const order = Array.from(items).map((item, index) => ({
             id: parseInt(item.dataset.id),
             sort_order: index
         }));
         
         try {
-            if (type === 'departments') {
+            if (type === 'categories') {
+                await api.reorderCategories(order);
+                await this.loadCategories();
+            } else if (type === 'departments') {
                 await api.reorderDepartments(order);
                 await this.loadDepartments();
             } else {
@@ -1937,7 +1981,9 @@ class App {
         }
         
         // Disable draggable and re-render to clean up event listeners
-        if (type === 'departments') {
+        if (type === 'categories') {
+            this.renderCategoryList();
+        } else if (type === 'departments') {
             this.renderDepartmentList();
         } else {
             this.renderUserList();
@@ -1946,7 +1992,10 @@ class App {
     
     // List Drag & Drop
     handleListDragStart(e, type) {
-        this.draggedListItem = e.target.closest(`.${type === 'departments' ? 'department' : 'user'}-item`);
+        const itemClass = type === 'categories' ? 'category-item' : 
+                          type === 'departments' ? 'department-item' : 
+                          'user-item';
+        this.draggedListItem = e.target.closest(`.${itemClass}`);
         if (this.draggedListItem) {
             this.draggedListItem.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
@@ -2038,14 +2087,33 @@ class App {
 
     renderCategoryList() {
         const container = document.getElementById('category-list');
+        const searchInput = document.getElementById('category-search');
+        const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+        
+        // Filter categories by search
+        let filteredCategories = this.categories;
+        if (searchQuery) {
+            filteredCategories = this.categories.filter(cat => 
+                cat.name.toLowerCase().includes(searchQuery)
+            );
+        }
 
-        if (this.categories.length === 0) {
-            container.innerHTML = '<div class="settings-empty">カテゴリーがありません</div>';
+        if (filteredCategories.length === 0) {
+            container.innerHTML = searchQuery ? 
+                '<div class="settings-empty">検索結果がありません</div>' :
+                '<div class="settings-empty">カテゴリーがありません</div>';
             return;
         }
 
-        container.innerHTML = this.categories.map(cat => `
+        container.innerHTML = filteredCategories.map(cat => `
             <div class="category-item" data-id="${cat.id}">
+                <span class="drag-handle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </span>
                 <span class="color-dot" style="background: ${cat.color}"></span>
                 <span class="name">${escapeHtml(cat.name)}</span>
                 <div class="item-actions">
