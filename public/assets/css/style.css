@@ -1037,6 +1037,18 @@ body[data-view="calendar"] .board-container {
     padding: var(--spacing-md);
 }
 
+/* Assigned task (not created by current user) styling */
+.task-card.assigned-task {
+    background: rgba(0, 122, 255, 0.06);  /* 薄い青 (Apple Blue) */
+    /* 他の色オプション: */
+    /* background: rgba(52, 199, 89, 0.06); */ /* 薄い緑 (Apple Green) */
+    /* background: rgba(255, 149, 0, 0.06); */ /* 薄いオレンジ (Apple Orange) */
+}
+
+.task-card.assigned-task:hover {
+    background: rgba(0, 122, 255, 0.08);
+}
+
 .task-card.dragging {
     opacity: 0.5;
     transform: rotate(2deg);
@@ -4226,6 +4238,22 @@ body[data-view="calendar"] .board-container {
 .client-task-item.completed .client-task-title {
     text-decoration: line-through;
     color: var(--color-text-secondary);
+}
+
+/* Assigned task (not created by current user) styling */
+.client-task-item.assigned-task {
+    background: rgba(0, 122, 255, 0.06);  /* 薄い青 (Apple Blue) */
+    border-color: rgba(0, 122, 255, 0.15);
+    /* 他の色オプション: */
+    /* background: rgba(52, 199, 89, 0.06); */ /* 薄い緑 (Apple Green) */
+    /* border-color: rgba(52, 199, 89, 0.15); */
+    /* background: rgba(255, 149, 0, 0.06); */ /* 薄いオレンジ (Apple Orange) */
+    /* border-color: rgba(255, 149, 0, 0.15); */
+}
+
+.client-task-item.assigned-task:hover {
+    background: rgba(0, 122, 255, 0.08);
+    border-color: rgba(0, 122, 255, 0.2);
 }
 
 .client-task-content {

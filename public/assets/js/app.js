@@ -893,12 +893,13 @@ class App {
     }
 
     renderClientTaskItem(task, isCompleted = false) {
+        const isOwn = task.creator_id === this.user?.id;
         const dueInfo = this.formatDueDate(task.due_date);
         const priorityLabels = { urgent: '緊急', high: '高', medium: '中', low: '低' };
         const priorityColors = { urgent: '#FF3B30', high: '#FF9500', medium: '#007AFF', low: '#8E8E93' };
 
         return `
-            <div class="client-task-item ${isCompleted ? 'completed' : ''}" data-id="${task.id}">
+            <div class="client-task-item ${isCompleted ? 'completed' : ''} ${!isOwn ? 'assigned-task' : ''}" data-id="${task.id}">
                 <div class="task-checkbox ${isCompleted ? 'checked' : ''}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                         <polyline points="20 6 9 17 4 12"/>
@@ -1419,7 +1420,7 @@ class App {
         const isDraggable = !isCompact && this.user?.role !== 'client';
 
         return `
-            <div class="task-card ${isCompact ? 'compact' : ''} ${task.status === 'done' ? 'completed' : ''} ${isOwn && this.currentView === 'clients' ? 'own-task' : ''}" 
+            <div class="task-card ${isCompact ? 'compact' : ''} ${task.status === 'done' ? 'completed' : ''} ${!isOwn ? 'assigned-task' : ''}" 
                  data-id="${task.id}" 
                  data-category="${task.category_id || '0'}"
                  ${isDraggable ? 'draggable="true"' : ''}>
