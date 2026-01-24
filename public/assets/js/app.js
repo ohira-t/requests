@@ -669,6 +669,12 @@ class App {
         } else if (this.currentView === 'calendar') {
             // Calendar is handled by loadCalendar
         }
+        
+        // Reset scroll position to top-left after rendering
+        requestAnimationFrame(() => {
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
+        });
     }
 
     // クライアント専用のシンプルなリストビュー
@@ -745,6 +751,12 @@ class App {
             const btn = e.currentTarget;
             btn.classList.toggle('open');
             btn.nextElementSibling.classList.toggle('show');
+        });
+        
+        // Reset scroll position to top-left
+        requestAnimationFrame(() => {
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
         });
     }
 
@@ -2895,6 +2907,12 @@ class App {
                 if (taskId) this.openTaskDetail(taskId);
             });
         });
+        
+        // Reset scroll position to top-left
+        requestAnimationFrame(() => {
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
+        });
     }
 
     // Requested View with Workload
@@ -3117,6 +3135,12 @@ class App {
             item.addEventListener('click', () => {
                 this.openTaskDetail(parseInt(item.dataset.id));
             });
+        });
+        
+        // Reset scroll position to top-left
+        requestAnimationFrame(() => {
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
         });
     }
 
