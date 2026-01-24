@@ -297,6 +297,23 @@ class API {
     async reorderUsers(users) {
         return this.put('/users/reorder', { users });
     }
+    
+    // Account deactivation
+    async deactivateAccount(data) {
+        return this.post('/auth/deactivate', data);
+    }
+    
+    async getDeactivatedUsers() {
+        return this.get('/users/deactivated');
+    }
+    
+    async restoreUser(id) {
+        return this.put(`/users/${id}/restore`);
+    }
+    
+    async permanentlyDeleteUser(id) {
+        return this.delete(`/users/${id}/permanently`);
+    }
 }
 
 class APIError extends Error {

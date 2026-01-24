@@ -194,4 +194,66 @@ class UserController
         
         Response::success(['message' => '並び替えを保存しました']);
     }
+    
+    /**
+     * 無効化されたユーザー一覧を取得（管理者のみ）
+     */
+    public function deactivated(): void
+    {
+        $user = AuthMiddleware::handle();
+        if (!$user || $user['role'] !== 'admin') {
+            Response::forbidden('この操作を実行する権限がありません');
+            return;
+        }
+        
+        $users = User::getDeactivated();
+        
+        Response::success($users);
+    }
+    
+    /**
+     * ユーザーを復元（管理者のみ）
+     */
+    public function restore(int $id): void
+    {
+        $user = AuthMiddleware::handle();
+        if (!$user || $user['role'] !== 'admin') {
+            Response::forbidden('この操作を実行する権限がありません');
+            return;
+        }
+        
+        $targetUser = User::findDeactivatedById($id);
+        
+        if (!$targetUser) {
+            Response::notFound('無効化されたユーザーが見つかりません');
+            return;
+        }
+        
+        User::restore($id);
+        
+        Response::success(['message' => 'ユーザーを復元しました']);
+    }
+    
+    /**
+     * ユーザーを完全削除（管理者のみ）
+     */
+    public function permanentlyDelete(int $id): void
+    {
+        $user = AuthMiddleware::handle();
+        if (!$user || $user['role'] !== 'admin') {
+            Response::forbidden('この操作を実行する権限がありません');
+            return;
+        }
+        
+        $targetUser = User::findDeactivatedById($id);
+        
+        if (!$targetUser) {
+            Response::notFound('無効化されたユーザーが見つかりません');
+            return;
+        }
+        
+        User::permanentlyDelete($id);
+        
+        Response::success(['message' => 'ユーザーを完全に削除しました']);
+    }
 }

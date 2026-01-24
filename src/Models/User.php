@@ -228,4 +228,69 @@ class User
         );
         return $result['count'] ?? 0;
     }
+    
+    /**
+     * ユーザーを無効化（論理削除）
+     */
+    public static function deactivate(int $id): bool
+    {
+        return Database::execute(
+            "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
+            [$id]
+        );
+    }
+    
+    /**
+     * 無効化されたユーザー一覧を取得
+     */
+    public static function getDeactivated(): array
+    {
+        return Database::fetchAll(
+            "SELECT u.id, u.name, u.email, u.role, u.type, u.company, u.department_id, 
+                    u.created_at, u.updated_at, u.deleted_at,
+                    d.name as department_name, d.color as department_color
+             FROM users u
+             LEFT JOIN departments d ON u.department_id = d.id AND d.deleted_at IS NULL
+             WHERE u.deleted_at IS NOT NULL
+             ORDER BY u.deleted_at DESC"
+        );
+    }
+    
+    /**
+     * 無効化されたユーザーをIDで取得
+     */
+    public static function findDeactivatedById(int $id): ?array
+    {
+        return Database::fetch(
+            "SELECT u.id, u.name, u.email, u.role, u.type, u.company, u.department_id, 
+                    u.created_at, u.updated_at, u.deleted_at,
+                    d.name as department_name, d.color as department_color
+             FROM users u
+             LEFT JOIN departments d ON u.department_id = d.id AND d.deleted_at IS NULL
+             WHERE u.id = ? AND u.deleted_at IS NOT NULL",
+            [$id]
+        );
+    }
+    
+    /**
+     * ユーザーを復元
+     */
+    public static function restore(int $id): bool
+    {
+        return Database::execute(
+            "UPDATE users SET deleted_at = NULL WHERE id = ?",
+            [$id]
+        );
+    }
+    
+    /**
+     * ユーザーを完全削除（物理削除）
+     */
+    public static function permanentlyDelete(int $id): bool
+    {
+        return Database::execute(
+            "DELETE FROM users WHERE id = ?",
+            [$id]
+        );
+    }
 }

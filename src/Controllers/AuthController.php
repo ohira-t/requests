@@ -126,6 +126,42 @@ class AuthController
     }
     
     /**
+     * アカウント無効化（論理削除）
+     */
+    public function deactivate(): void
+    {
+        $user = AuthMiddleware::handle();
+        if (!$user) return;
+        
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        $validator = Validator::make($data)
+            ->required('password', 'パスワードは必須です');
+        
+        if ($validator->fails()) {
+            Response::validationError($validator->errors());
+            return;
+        }
+        
+        // Get full user data with password
+        $fullUser = User::findByEmail($user['email']);
+        
+        // Verify password
+        if (!User::verifyPassword($fullUser, $data['password'])) {
+            Response::error('INVALID_PASSWORD', 'パスワードが正しくありません', 400);
+            return;
+        }
+        
+        // Deactivate user (soft delete)
+        User::deactivate($user['id']);
+        
+        // Clear session
+        session_destroy();
+        
+        Response::success(['message' => 'アカウントを無効化しました']);
+    }
+    
+    /**
      * 新規ユーザー登録（スタッフとして登録）
      */
     public function register(): void

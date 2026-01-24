@@ -49,6 +49,9 @@ class App {
 
         // Change password
         document.getElementById('change-password-btn')?.addEventListener('click', () => this.openChangePasswordModal());
+        
+        // Deactivate account
+        document.getElementById('deactivate-account-btn')?.addEventListener('click', () => this.openDeactivateAccountModal());
 
         // Notifications
         document.getElementById('notifications-btn')?.addEventListener('click', () => this.toggleNotificationsPanel());
@@ -110,6 +113,7 @@ class App {
         this.initCategoryEditModal();
         this.initUserEditModal();
         this.initChangePasswordModal();
+        this.initDeactivateAccountModal();
         this.initAnnouncementModal();
         
         // Search clear buttons
@@ -591,6 +595,11 @@ class App {
             const usersTab = document.getElementById('users-tab');
             if (usersTab) {
                 usersTab.style.display = 'flex';
+            }
+            
+            const deactivatedTab = document.getElementById('deactivated-tab');
+            if (deactivatedTab) {
+                deactivatedTab.style.display = 'flex';
             }
             
             const adminUsersLink = document.getElementById('admin-users-link');
@@ -1806,6 +1815,11 @@ class App {
                 // Exit edit mode when switching tabs
                 this.exitEditMode('departments');
                 this.exitEditMode('users');
+                
+                // Load deactivated users when switching to that tab
+                if (targetTab === 'deactivated') {
+                    this.loadDeactivatedUsers();
+                }
             });
         });
 
@@ -3331,6 +3345,76 @@ class App {
             submitBtn.disabled = false;
         }
     }
+    
+    // Deactivate Account
+    initDeactivateAccountModal() {
+        const modal = document.getElementById('deactivate-account-modal');
+        const form = document.getElementById('deactivate-account-form');
+        const closeBtn = document.getElementById('deactivate-account-close');
+        const cancelBtn = document.getElementById('deactivate-account-cancel');
+
+        closeBtn?.addEventListener('click', () => this.closeDeactivateAccountModal());
+        cancelBtn?.addEventListener('click', () => this.closeDeactivateAccountModal());
+
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeDeactivateAccountModal();
+        });
+
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleDeactivateAccount();
+        });
+    }
+
+    openDeactivateAccountModal() {
+        const modal = document.getElementById('deactivate-account-modal');
+        const form = document.getElementById('deactivate-account-form');
+        const errorDiv = document.getElementById('deactivate-account-error');
+        
+        form.reset();
+        errorDiv.style.display = 'none';
+        modal.style.display = 'flex';
+        document.getElementById('deactivate-password').focus();
+
+        // Close user dropdown
+        const dropdown = document.getElementById('user-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+    }
+
+    closeDeactivateAccountModal() {
+        document.getElementById('deactivate-account-modal').style.display = 'none';
+    }
+
+    async handleDeactivateAccount() {
+        const submitBtn = document.getElementById('deactivate-account-submit');
+        const errorDiv = document.getElementById('deactivate-account-error');
+        const password = document.getElementById('deactivate-password').value;
+
+        errorDiv.style.display = 'none';
+
+        submitBtn.querySelector('.btn-text').style.display = 'none';
+        submitBtn.querySelector('.btn-loading').style.display = 'flex';
+        submitBtn.disabled = true;
+
+        try {
+            await api.deactivateAccount({ password });
+            
+            this.closeDeactivateAccountModal();
+            this.showToast('アカウントを無効化しました', 'success');
+            
+            // Wait a moment then redirect to login
+            setTimeout(() => {
+                window.location.href = window.location.pathname.replace('app.html', 'index.html');
+            }, 1500);
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.style.display = 'block';
+        } finally {
+            submitBtn.querySelector('.btn-text').style.display = 'inline';
+            submitBtn.querySelector('.btn-loading').style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    }
 
     // Announcement Modal (Admin only)
     initAnnouncementModal() {
@@ -3632,6 +3716,131 @@ class App {
             btn.innerHTML = originalText;
             btn.style.opacity = '1';
             btn.disabled = false;
+        }
+    }
+    
+    // Deactivated Users Management (Admin only)
+    async loadDeactivatedUsers() {
+        try {
+            const result = await api.getDeactivatedUsers();
+            this.deactivatedUsers = result.data || [];
+            this.renderDeactivatedUserList();
+        } catch (error) {
+            console.error('Failed to load deactivated users:', error);
+            this.showToast('無効化ユーザーの取得に失敗しました', 'error');
+        }
+    }
+    
+    renderDeactivatedUserList() {
+        const container = document.getElementById('deactivated-user-list');
+        const emptyState = document.getElementById('deactivated-empty-state');
+        
+        if (!container) return;
+        
+        if (!this.deactivatedUsers || this.deactivatedUsers.length === 0) {
+            container.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+        
+        if (emptyState) emptyState.style.display = 'none';
+        
+        container.innerHTML = this.deactivatedUsers.map(user => {
+            const roleText = user.role === 'admin' ? '管理者' : user.role === 'staff' ? 'スタッフ' : 'クライアント';
+            const roleColor = user.role === 'admin' ? '#FF3B30' : user.role === 'staff' ? '#007AFF' : '#34C759';
+            
+            const initials = user.name.charAt(0).toUpperCase();
+            const deactivatedDate = user.deleted_at ? new Date(user.deleted_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+            
+            return `
+                <div class="user-item" data-id="${user.id}">
+                    <div class="user-avatar-sm" style="background: ${this.stringToColor(user.name)}">${escapeHtml(initials)}</div>
+                    <div class="user-info">
+                        <div class="name">${escapeHtml(user.name)}</div>
+                        <div class="email">${escapeHtml(user.email)}</div>
+                        <div class="email" style="font-size: 12px; opacity: 0.7;">無効化日: ${deactivatedDate}</div>
+                    </div>
+                    <span class="role-badge" style="background: ${roleColor}20; color: ${roleColor}">${roleText}</span>
+                    <div style="display: flex; gap: 8px; margin-left: 12px;">
+                        <button class="btn-icon restore-user-btn" data-id="${user.id}" title="復元">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                        </button>
+                        <button class="btn-icon delete-user-permanently-btn" data-id="${user.id}" title="完全削除" style="color: var(--color-error);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Bind restore buttons
+        container.querySelectorAll('.restore-user-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const userId = parseInt(btn.dataset.id);
+                this.handleRestoreUser(userId);
+            });
+        });
+        
+        // Bind delete buttons
+        container.querySelectorAll('.delete-user-permanently-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const userId = parseInt(btn.dataset.id);
+                this.handlePermanentlyDeleteUser(userId);
+            });
+        });
+    }
+    
+    async handleRestoreUser(userId) {
+        const user = this.deactivatedUsers.find(u => u.id === userId);
+        if (!user) return;
+        
+        if (!confirm(`${user.name} を復元しますか？\n\nこのユーザーは再度ログインできるようになります。`)) {
+            return;
+        }
+        
+        try {
+            await api.restoreUser(userId);
+            this.showToast(`${user.name} を復元しました`, 'success');
+            this.loadDeactivatedUsers();
+            this.loadUsers(); // Refresh main user list
+        } catch (error) {
+            this.showToast('ユーザーの復元に失敗しました', 'error');
+        }
+    }
+    
+    async handlePermanentlyDeleteUser(userId) {
+        const user = this.deactivatedUsers.find(u => u.id === userId);
+        if (!user) return;
+        
+        if (!confirm(`${user.name} を完全に削除しますか？\n\n⚠️ この操作は取り消せません。\nすべてのデータが永久に削除されます。`)) {
+            return;
+        }
+        
+        // Second confirmation
+        const confirmation = prompt(`本当に削除しますか？\n確認のため、ユーザー名「${user.name}」を入力してください。`);
+        if (confirmation !== user.name) {
+            if (confirmation !== null) {
+                this.showToast('ユーザー名が一致しません', 'error');
+            }
+            return;
+        }
+        
+        try {
+            await api.permanentlyDeleteUser(userId);
+            this.showToast(`${user.name} を完全に削除しました`, 'success');
+            this.loadDeactivatedUsers();
+        } catch (error) {
+            this.showToast('ユーザーの削除に失敗しました', 'error');
         }
     }
 }

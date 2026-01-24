@@ -378,6 +378,20 @@ select.input:focus {
     background: var(--color-border-light);
 }
 
+.btn-danger {
+    background: var(--color-error);
+    color: white;
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+}
+
 .btn-text-cancel {
     color: var(--color-destructive);
     font-weight: 500;
@@ -649,6 +663,14 @@ a.dropdown-item {
 
 .dropdown-item:hover {
     background: var(--color-bg);
+}
+
+.dropdown-item.text-danger {
+    color: var(--color-error);
+}
+
+.dropdown-item.text-danger:hover {
+    background: rgba(255, 59, 48, 0.08);
 }
 
 /* ============================================

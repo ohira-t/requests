@@ -105,6 +105,7 @@ function registerRoutes(): Router
     $router->get('/auth/me', [$auth, 'me']);
     $router->get('/auth/check', [$auth, 'checkSession']);
     $router->post('/auth/change-password', [$auth, 'changePassword']);
+    $router->post('/auth/deactivate', [$auth, 'deactivate']);
     
     // Task routes
     $task = new TaskController();
@@ -139,10 +140,13 @@ function registerRoutes(): Router
     $router->get('/users', [$user, 'index']);
     $router->get('/users/internal', [$user, 'internalUsers']);
     $router->get('/users/clients', [$user, 'clientUsers']);
+    $router->get('/users/deactivated', [$user, 'deactivated']);  // Admin only - Must be before {id} routes
     $router->put('/users/reorder', [$user, 'reorder']);  // Must be before {id} routes
     $router->get('/users/{id}', [$user, 'show']);
     $router->post('/users', [$user, 'store']);
     $router->put('/users/{id}', [$user, 'update']);
+    $router->put('/users/{id}/restore', [$user, 'restore']);  // Admin only
+    $router->delete('/users/{id}/permanently', [$user, 'permanentlyDelete']);  // Admin only
     $router->delete('/users/{id}', [$user, 'destroy']);
     
     // Notification routes
