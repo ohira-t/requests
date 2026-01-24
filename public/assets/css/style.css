@@ -1898,12 +1898,14 @@ body[data-view="calendar"] .board-container {
     cursor: grabbing;
 }
 
+.edit-mode .category-item.dragging,
 .edit-mode .department-item.dragging,
 .edit-mode .user-item.dragging {
     opacity: 0.5;
     background: var(--color-bg-tertiary);
 }
 
+.edit-mode .category-item.drag-over,
 .edit-mode .department-item.drag-over,
 .edit-mode .user-item.drag-over {
     border-top: 2px solid var(--color-primary);

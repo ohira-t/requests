@@ -14,6 +14,8 @@ class App {
         this.notifications = [];
         this.unreadCount = 0;
         this.departments = [];
+        this.touchStartY = null;
+        this.touchClone = null;
 
         this.init();
     }
@@ -1977,11 +1979,17 @@ class App {
                           'user-item';
         list.querySelectorAll(`.${itemClass}`).forEach(item => {
             item.draggable = true;
+            // Desktop drag events
             item.addEventListener('dragstart', (e) => this.handleListDragStart(e, type));
             item.addEventListener('dragend', (e) => this.handleListDragEnd(e, type));
             item.addEventListener('dragover', (e) => this.handleListDragOver(e));
             item.addEventListener('dragleave', (e) => this.handleListDragLeave(e));
             item.addEventListener('drop', (e) => this.handleListDrop(e, type));
+            
+            // Mobile touch events
+            item.addEventListener('touchstart', (e) => this.handleTouchStart(e, type), { passive: false });
+            item.addEventListener('touchmove', (e) => this.handleTouchMove(e, type), { passive: false });
+            item.addEventListener('touchend', (e) => this.handleTouchEnd(e, type), { passive: false });
         });
     }
     
@@ -2094,6 +2102,92 @@ class App {
         } else {
             list.insertBefore(this.draggedListItem, target);
         }
+    }
+    
+    // Touch events for mobile
+    handleTouchStart(e, type) {
+        const itemClass = type === 'categories' ? 'category-item' : 
+                          type === 'departments' ? 'department-item' : 
+                          'user-item';
+        this.draggedListItem = e.target.closest(`.${itemClass}`);
+        if (!this.draggedListItem) return;
+        
+        this.touchStartY = e.touches[0].clientY;
+        this.draggedListItem.classList.add('dragging');
+        
+        // Create a clone for visual feedback
+        this.touchClone = this.draggedListItem.cloneNode(true);
+        this.touchClone.style.position = 'fixed';
+        this.touchClone.style.left = this.draggedListItem.getBoundingClientRect().left + 'px';
+        this.touchClone.style.top = e.touches[0].clientY + 'px';
+        this.touchClone.style.width = this.draggedListItem.offsetWidth + 'px';
+        this.touchClone.style.opacity = '0.8';
+        this.touchClone.style.zIndex = '10000';
+        this.touchClone.style.pointerEvents = 'none';
+        document.body.appendChild(this.touchClone);
+    }
+    
+    handleTouchMove(e, type) {
+        if (!this.draggedListItem) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const currentY = touch.clientY;
+        
+        // Move the clone
+        if (this.touchClone) {
+            this.touchClone.style.top = currentY + 'px';
+        }
+        
+        // Find the item under the touch point
+        const itemClass = type === 'categories' ? 'category-item' : 
+                          type === 'departments' ? 'department-item' : 
+                          'user-item';
+        const list = this.draggedListItem.parentNode;
+        const items = Array.from(list.querySelectorAll(`.${itemClass}`));
+        
+        // Remove all drag-over classes
+        items.forEach(item => item.classList.remove('drag-over'));
+        
+        // Find target item
+        let targetItem = null;
+        for (const item of items) {
+            if (item === this.draggedListItem) continue;
+            const rect = item.getBoundingClientRect();
+            if (currentY >= rect.top && currentY <= rect.bottom) {
+                targetItem = item;
+                break;
+            }
+        }
+        
+        if (targetItem) {
+            targetItem.classList.add('drag-over');
+            const draggedIndex = items.indexOf(this.draggedListItem);
+            const targetIndex = items.indexOf(targetItem);
+            
+            if (draggedIndex < targetIndex) {
+                list.insertBefore(this.draggedListItem, targetItem.nextSibling);
+            } else {
+                list.insertBefore(this.draggedListItem, targetItem);
+            }
+        }
+    }
+    
+    handleTouchEnd(e, type) {
+        if (!this.draggedListItem) return;
+        
+        // Clean up
+        this.draggedListItem.classList.remove('dragging');
+        if (this.touchClone) {
+            this.touchClone.remove();
+            this.touchClone = null;
+        }
+        
+        // Remove all drag-over classes
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        
+        this.draggedListItem = null;
+        this.touchStartY = null;
     }
 
     openSettingsModal() {
