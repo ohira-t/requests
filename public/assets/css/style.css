@@ -2120,22 +2120,17 @@ body[data-view="calendar"] .board-container {
         letter-spacing: -0.3px;
     }
     
-    /* 右側: 通知、ユーザー、+ボタンのみ（設定は非表示） */
+    /* 右側: 通知、設定、ユーザー、+ボタン */
     .header-right {
         flex: 0 0 auto;
         justify-content: flex-end;
-        gap: 2px; /* ボタン間は最小限に、タップ領域内で十分 */
+        gap: 0; /* タップ領域内で十分なので間隔なし */
         order: 2;
         min-width: 0;
     }
     
     .search-box {
         display: none;
-    }
-    
-    /* 設定ボタンをスマホで非表示（ユーザーメニュー内にあるため） */
-    #settings-btn {
-        display: none !important;
     }
     
     /* タスク追加ボタン - Apple標準の44pt × 44ptタップ領域 */
@@ -2146,7 +2141,6 @@ body[data-view="calendar"] .board-container {
         height: 44px;
         min-width: 44px; /* タップ領域確保 */
         padding: 0;
-        margin-left: 4px; /* 右端に配置 */
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -2172,7 +2166,7 @@ body[data-view="calendar"] .board-container {
         stroke-width: 2.5;
     }
     
-    /* アイコンボタン - Apple標準の44pt × 44pt */
+    /* アイコンボタン - 44ptタップ領域、視覚的には小さく */
     .icon-btn {
         width: 44px !important;
         height: 44px !important;
@@ -2182,20 +2176,28 @@ body[data-view="calendar"] .board-container {
         -webkit-tap-highlight-color: transparent;
     }
     
+    .icon-btn svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    
     .notification-btn {
         order: 1;
     }
     
-    /* ユーザーアバター - Apple標準の44pt × 44pt */
+    #settings-btn {
+        order: 2;
+    }
+    
+    /* ユーザーアバター - 44ptタップ領域内に配置 */
     .user-avatar {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 15px;
-        margin: 4px; /* 44px領域内で中央配置 */
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px;
     }
     
     .user-menu {
-        order: 2;
+        order: 3;
         width: 44px;
         height: 44px;
         display: flex;
