@@ -2579,7 +2579,7 @@ class App {
             : '';
 
         return `
-            <div class="user-item" data-id="${user.id}" draggable="false">
+            <div class="user-item" data-id="${user.id}">
                 <span class="drag-handle">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="4" y1="8" x2="20" y2="8"/>
@@ -2762,7 +2762,7 @@ class App {
 
     renderDepartmentItem(dept, isPinned) {
         return `
-            <div class="department-item" data-id="${dept.id}" draggable="false">
+            <div class="department-item" data-id="${dept.id}">
                 <span class="drag-handle">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="4" y1="8" x2="20" y2="8"/>
