@@ -68,6 +68,8 @@
     
     /* Layout */
     --header-height: 64px;
+    --mobile-header-height: 56px; /* スマホ時: 1行のみ（iOS標準） */
+    --mobile-tabbar-height: 64px;
     --column-width: 300px;
     --column-gap: 16px;
 }
@@ -553,19 +555,26 @@ select.input:focus {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--theme-color);
-    color: white;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
     font-size: var(--font-size-sm);
     font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all var(--transition-fast);
+    border: none;
+    cursor: pointer;
 }
 
 .user-avatar:hover {
-    opacity: 0.9;
+    background: #D1D1D6;
     transform: scale(1.05);
+}
+
+.user-avatar:active {
+    background: #C7C7CC;
+    transform: scale(0.98);
 }
 
 .user-dropdown {
@@ -643,6 +652,10 @@ body[data-view="calendar"] .board-container {
     height: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+    /* スナップスクロールを有効化（スマホ時に特に効果的） */
+    scroll-snap-type: x mandatory;
+    scroll-padding: var(--spacing-xl);
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Calendar view needs vertical scroll */
@@ -661,6 +674,9 @@ body[data-view="calendar"] .board-container {
     box-shadow: var(--shadow-sm);
     max-height: 100%;
     overflow: hidden;
+    /* スナップスクロールのポイントに設定 */
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
 }
 
 .board-column.dragging {
@@ -1085,6 +1101,8 @@ body[data-view="calendar"] .board-container {
     z-index: 1000;
     padding: var(--spacing-xl);
     animation: fadeIn var(--transition-fast);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 @keyframes fadeIn {
@@ -1467,9 +1485,10 @@ body[data-view="calendar"] .board-container {
 
 .settings-tabs {
     display: flex;
-    padding: 0 var(--spacing-xl);
+    padding: 0 var(--spacing-md);
     border-bottom: 1px solid var(--color-border-light);
     background: var(--color-bg-secondary);
+    min-height: 48px;
 }
 
 .settings-tab {
@@ -1477,10 +1496,11 @@ body[data-view="calendar"] .board-container {
     align-items: center;
     gap: var(--spacing-sm);
     padding: var(--spacing-md) var(--spacing-lg);
+    min-height: 48px;
     border: none;
     background: transparent;
     font-family: var(--font-family);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
     font-weight: 500;
     color: var(--color-text-secondary);
     cursor: pointer;
@@ -1525,18 +1545,40 @@ body[data-view="calendar"] .board-container {
     display: flex;
 }
 
+/* iOS Spotlight風検索バー */
 .settings-search {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-xl);
-    border-bottom: 1px solid var(--color-border-light);
+    padding: var(--spacing-md) var(--spacing-xl);
     background: var(--color-bg-secondary);
+    min-height: 60px;
+}
+
+.settings-search > div {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 36px;
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
+}
+
+.settings-search > div:focus-within {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .settings-search svg {
     color: var(--color-text-secondary);
     flex-shrink: 0;
+    width: 18px;
+    height: 18px;
 }
 
 .settings-search input {
@@ -1546,10 +1588,37 @@ body[data-view="calendar"] .board-container {
     font-size: var(--font-size-base);
     color: var(--color-text-primary);
     outline: none;
+    padding: 0;
 }
 
 .settings-search input::placeholder {
-    color: var(--color-text-disabled);
+    color: var(--color-text-secondary);
+}
+
+.settings-search .clear-btn {
+    display: none;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: var(--color-text-secondary);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    transition: opacity var(--transition-fast);
+}
+
+.settings-search .clear-btn:hover {
+    opacity: 0.8;
+}
+
+.settings-search .clear-btn:active {
+    opacity: 0.6;
 }
 
 .settings-section-header {
@@ -1570,7 +1639,7 @@ body[data-view="calendar"] .board-container {
 .settings-panel-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-lg) var(--spacing-xl);
+    padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-lg);
     -webkit-overflow-scrolling: touch;
 }
 
@@ -1582,39 +1651,50 @@ body[data-view="calendar"] .board-container {
 
 /* Settings Panel Header (Edit Mode) */
 .settings-panel-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-md) var(--spacing-xl);
-    border-bottom: 1px solid var(--color-border-light);
+    min-height: 52px;
     background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-light);
 }
 
 .settings-panel-title {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
     font-weight: 600;
     color: var(--color-text-secondary);
 }
 
 .settings-edit-btn {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-base);
     font-weight: 500;
     color: var(--color-primary);
-    background: none;
+    background: rgba(0, 122, 255, 0.08);
     border: none;
     cursor: pointer;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    min-height: 32px;
     border-radius: var(--radius-sm);
-    transition: background var(--transition-fast);
+    transition: all var(--transition-fast);
 }
 
 .settings-edit-btn:hover {
-    background: rgba(0, 122, 255, 0.1);
+    background: rgba(0, 122, 255, 0.12);
+}
+
+.settings-edit-btn:active {
+    background: rgba(0, 122, 255, 0.16);
+    transform: scale(0.98);
 }
 
 .settings-edit-btn.active {
     color: var(--color-primary);
     font-weight: 600;
+    background: rgba(0, 122, 255, 0.15);
 }
 
 /* Drag Handle */
@@ -1962,7 +2042,7 @@ body[data-view="calendar"] .board-container {
    ============================================ */
 
 /* Tablet */
-@media (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1024px) {
     .app-header {
         flex-wrap: wrap;
         height: auto;
@@ -2009,68 +2089,216 @@ body[data-view="calendar"] .board-container {
         --column-width: 280px;
     }
     
+    /* ヘッダーのレイアウト変更 - iOS標準1行パターン */
     .app-header {
-        padding: var(--spacing-sm) var(--spacing-md);
+        height: 56px;
+        padding: var(--spacing-xs) var(--spacing-md);
+        flex-wrap: nowrap;
+        gap: var(--spacing-sm);
+        align-items: center;
     }
     
+    /* 左側: ロゴ */
+    .header-left {
+        flex: 0 0 auto;
+        order: 1;
+    }
+    
+    .logo {
+        flex: 0 0 auto;
+    }
+    
+    /* 右側: ベル、設定、ユーザーアイコン、+ボタン */
     .header-right {
+        flex: 1 1 auto;
+        justify-content: flex-end;
         gap: var(--spacing-xs);
+        order: 2;
+        min-width: 0;
     }
     
     .search-box {
         display: none;
     }
     
-    .btn span {
-        display: none;
-    }
-    
-    .btn svg {
-        margin: 0;
-    }
-    
-    .btn.btn-primary {
-        width: 40px;
-        height: 40px;
+    /* タスク追加ボタン - 小さいアイコンボタンに変更 */
+    #new-task-btn {
+        order: 10;
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px;
         padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
         justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
+        background: var(--color-primary) !important;
+    }
+    
+    #new-task-btn:hover {
+        box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+        transform: scale(1.05);
+    }
+    
+    #new-task-btn:active {
+        box-shadow: 0 1px 2px rgba(0, 122, 255, 0.2);
+        transform: scale(0.98);
+    }
+    
+    #new-task-btn span {
+        display: none; /* テキストを非表示 */
+    }
+    
+    #new-task-btn svg {
+        width: 20px;
+        height: 20px;
     }
     
     .icon-btn {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+    }
+    
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+    
+    /* タブバーを下部に固定 */
+    .view-tabs {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 100 !important;
+        width: 100% !important;
+        height: var(--mobile-tabbar-height) !important;
+        margin: 0 !important;
+        padding: var(--spacing-xs) var(--spacing-sm) calc(var(--spacing-xs) + env(safe-area-inset-bottom)) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-top: 1px solid var(--color-border-light) !important;
+        border-radius: 0 !important;
+        box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08) !important;
+        display: flex !important;
+        justify-content: space-around !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
     }
     
     .view-tab {
-        padding: var(--spacing-xs) var(--spacing-sm);
-        font-size: var(--font-size-xs);
+        flex: 1 !important;
+        max-width: 120px !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        padding: var(--spacing-xs) var(--spacing-sm) !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        border-radius: var(--radius-sm) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    
+    .view-tab.active {
+        background: transparent !important;
+        color: var(--theme-color) !important;
+        box-shadow: none !important;
     }
     
     .view-tab .tab-icon {
-        display: none;
+        display: flex !important;
+    }
+    
+    .view-tab .tab-icon svg {
+        width: 24px !important;
+        height: 24px !important;
+    }
+    
+    .view-tab .tab-text {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+        display: block !important;
+    }
+    
+    /* メインコンテンツの高さ調整 */
+    .app-main {
+        height: calc(100vh - 56px - var(--mobile-tabbar-height));
+        padding-bottom: 0;
     }
     
     .board-container {
         padding: var(--spacing-md);
+        padding-bottom: var(--spacing-lg);
+        /* スマホ時はスナップをより強制的に */
+        scroll-snap-type: x mandatory;
+        scroll-padding: var(--spacing-md);
+        gap: var(--spacing-md);
     }
     
-    /* Modal - Apple Sheet Style */
+    .board-column {
+        /* スマホ時は80%表示、次の列が20%見える（App Store風） */
+        flex: 0 0 calc(80vw - var(--spacing-md) * 2);
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+    
+    /* カレンダービュー時の調整 */
+    body[data-view="calendar"] .app-main {
+        height: auto;
+        min-height: calc(100vh - var(--mobile-header-height) - var(--mobile-tabbar-height));
+    }
+    
+    /* Modal - Apple Sheet Style（改善版） */
     .modal-overlay {
         padding: 0;
         align-items: flex-end;
+        justify-content: center;
+        overflow-y: hidden; /* スマホ時はスクロール無効 */
     }
     
     .modal {
         max-width: 100%;
-        max-height: 90vh;
+        max-height: calc(100vh - var(--spacing-xl));
         margin: 0;
         border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         animation: slideUpMobile 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        /* 位置を固定してぐらつきを防止 */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+    
+    .modal-header {
+        padding: var(--spacing-lg) var(--spacing-xl);
+        flex-shrink: 0;
     }
     
     .modal-body {
-        max-height: calc(90vh - 140px);
+        max-height: calc(100vh - 200px);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        /* スクロール領域を明示 */
+        overscroll-behavior: contain;
+    }
+    
+    .modal-footer {
+        padding: var(--spacing-md) var(--spacing-xl);
+        padding-bottom: calc(var(--spacing-lg) + env(safe-area-inset-bottom));
+        flex-shrink: 0;
+    }
+    
+    /* グラバーを目立たせる */
+    .modal-grabber {
+        display: block;
+        margin-top: var(--spacing-md);
     }
     
     @keyframes slideUpMobile {
@@ -2082,6 +2310,44 @@ body[data-view="calendar"] .board-container {
             opacity: 1;
             transform: translateY(0);
         }
+    }
+    
+    /* 設定モーダルのタブ（スマホ用） */
+    .settings-tabs {
+        padding: 0 var(--spacing-md);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        min-height: 48px !important;
+    }
+    
+    .settings-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .settings-tab {
+        flex-direction: row !important;
+        flex-shrink: 0;
+        padding: var(--spacing-md) var(--spacing-lg) !important;
+        min-height: 48px !important;
+        font-size: var(--font-size-base) !important;
+        white-space: nowrap;
+    }
+    
+    .settings-tab svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    
+    /* 設定モーダルの検索バー（スマホ用） */
+    .settings-search {
+        min-height: 60px !important;
+    }
+    
+    /* 設定モーダルのコンテンツ（スマホ用） */
+    .settings-panel-content {
+        padding: var(--spacing-lg) var(--spacing-md) !important;
     }
 }
 
@@ -2758,25 +3024,218 @@ body[data-view="calendar"] .board-container {
 }
 
 @media (max-width: 768px) {
+    /* スマホ統計ビュー: 縦スクロール可能にする */
+    body[data-view="stats"] .app-main {
+        height: auto;
+        min-height: calc(100vh - var(--mobile-header-height) - var(--mobile-tabbar-height));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    body[data-view="stats"] .board-container {
+        overflow-y: visible;
+        overflow-x: visible;
+        height: auto;
+        display: block;
+        scroll-snap-type: none;
+    }
+    
     .stats-view {
-        padding: var(--spacing-md);
+        display: block;
+        height: auto;
+        max-width: 100%;
+        padding: var(--spacing-lg) var(--spacing-md);
+        padding-bottom: calc(var(--mobile-tabbar-height) + var(--spacing-2xl));
+        overflow: visible;
+    }
+    
+    .stats-header {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .stats-title {
+        font-size: var(--font-size-xl);
+        font-weight: 700;
     }
 
+    /* Apple Health風: 2列コンパクトグリッド */
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
         gap: var(--spacing-sm);
     }
 
     .stat-card {
         padding: var(--spacing-md);
+        background: var(--color-bg-secondary);
+        border: none;
+        box-shadow: 
+            0 0 0 1px rgba(0, 0, 0, 0.04),
+            0 2px 8px rgba(0, 0, 0, 0.04);
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        border-radius: var(--radius-md);
+    }
+    
+    /* 完了率カードは幅広（2列使用） */
+    .stat-card:nth-child(5) {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-lg);
+    }
+    
+    .stat-card:nth-child(5) .stat-label {
+        order: 1;
+    }
+    
+    .stat-card:nth-child(5) .stat-value {
+        order: 2;
+        font-size: 32px;
+    }
+    
+    .stat-card:nth-child(5) .stat-progress {
+        order: 3;
+        flex: 1;
+        margin-top: 0;
+        max-width: 120px;
+    }
+    
+    /* アイコン付きのカラーアクセント */
+    .stat-card:nth-child(1) {
+        border-left: 3px solid var(--color-text-secondary);
+    }
+    
+    .stat-card:nth-child(2) {
+        border-left: 3px solid var(--color-success);
+    }
+    
+    .stat-card:nth-child(3) {
+        border-left: 3px solid var(--color-warning);
+    }
+    
+    .stat-card:nth-child(4) {
+        border-left: 3px solid var(--color-destructive);
+    }
+    
+    .stat-card:nth-child(5) {
+        border-left: 3px solid var(--color-primary);
+    }
+    
+    .stat-label {
+        font-size: var(--font-size-xs);
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        margin-bottom: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
     }
 
     .stat-value {
-        font-size: 24px;
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -1px;
+    }
+    
+    .stat-progress {
+        margin-top: var(--spacing-xs);
+        height: 6px;
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .stat-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--color-primary), #34C759);
+        border-radius: 3px;
+        transition: width 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    
+    /* チャートセクション */
+    .stats-charts {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+    }
+
+    .chart-card {
+        padding: var(--spacing-lg);
+        background: var(--color-bg-secondary);
+        border: none;
+        box-shadow: 
+            0 0 0 1px rgba(0, 0, 0, 0.04),
+            0 2px 8px rgba(0, 0, 0, 0.04);
+        border-radius: var(--radius-md);
+    }
+    
+    .chart-title {
+        font-size: var(--font-size-md);
+        font-weight: 700;
+        margin-bottom: var(--spacing-md);
     }
 
     .chart-bar-item {
-        grid-template-columns: 60px 1fr 35px;
+        grid-template-columns: 70px 1fr 32px;
+        gap: var(--spacing-sm);
+        align-items: center;
+        padding: var(--spacing-xs) 0;
+    }
+    
+    .chart-bar-label {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+    }
+    
+    .chart-bar-wrapper {
+        height: 20px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 10px;
+    }
+    
+    .chart-bar {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    
+    .chart-bar-value {
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        text-align: right;
+    }
+    
+    /* 最近のタスクセクション */
+    .stats-recent {
+        margin-top: var(--spacing-lg);
+        background: var(--color-bg-secondary);
+        border: none;
+        box-shadow: 
+            0 0 0 1px rgba(0, 0, 0, 0.04),
+            0 2px 8px rgba(0, 0, 0, 0.04);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-lg);
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .stats-section-title {
+        font-size: var(--font-size-md);
+        font-weight: 700;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .stats-task-item {
+        padding: var(--spacing-sm) var(--spacing-xs);
+    }
+    
+    .stats-task-title {
+        font-size: var(--font-size-base);
     }
 }
 
@@ -3073,28 +3532,188 @@ body[data-view="calendar"] .board-container {
         padding: var(--spacing-sm);
     }
 
-    .calendar-day {
-        min-height: 80px;
-        padding: var(--spacing-xs);
+    /* スマホ時はグリッド表示を隠して縦長リストに切り替え */
+    .calendar-grid {
+        display: none;
     }
-
-    .calendar-task {
-        font-size: 10px;
-        padding: 1px 4px;
+    
+    /* 縦長リスト表示用の新しいスタイル */
+    .calendar-list-view {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        background: transparent;
+        border: none;
+        border-radius: 0;
     }
-
-    .day-number {
+    
+    .calendar-list-day {
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid transparent;
+    }
+    
+    .calendar-list-day.today {
+        border-left-color: var(--color-primary);
+        background: rgba(0, 122, 255, 0.04);
+    }
+    
+    .calendar-list-day.has-tasks {
+        border-left-color: var(--theme-color);
+    }
+    
+    .calendar-list-day-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--color-border-light);
+    }
+    
+    .calendar-list-day-date {
+        display: flex;
+        align-items: baseline;
+        gap: var(--spacing-sm);
+    }
+    
+    .calendar-list-day-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--color-text-primary);
+    }
+    
+    .calendar-list-day.today .calendar-list-day-number {
+        color: var(--color-primary);
+    }
+    
+    .calendar-list-day-weekday {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        color: var(--color-text-secondary);
+    }
+    
+    .calendar-list-day.today .calendar-list-day-weekday {
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+    
+    .calendar-list-day-badge {
         font-size: var(--font-size-xs);
+        font-weight: 600;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-full);
+        background: var(--color-bg-tertiary);
+        color: var(--color-text-secondary);
+    }
+    
+    .calendar-list-day.today .calendar-list-day-badge {
+        background: var(--color-primary);
+        color: white;
+    }
+    
+    .calendar-list-tasks {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .calendar-list-task {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+        background: var(--color-bg);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+    
+    .calendar-list-task:hover {
+        background: var(--color-bg-tertiary);
+        transform: translateX(4px);
+    }
+    
+    .calendar-list-task:active {
+        transform: scale(0.98);
+    }
+    
+    .calendar-list-task-indicator {
+        width: 4px;
+        height: 100%;
+        min-height: 40px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+    
+    .calendar-list-task.my-task .calendar-list-task-indicator {
+        background: var(--color-primary);
+    }
+    
+    .calendar-list-task.my-request .calendar-list-task-indicator {
+        background: var(--color-success);
+    }
+    
+    .calendar-list-task.overdue .calendar-list-task-indicator {
+        background: var(--color-destructive);
+    }
+    
+    .calendar-list-task-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .calendar-list-task-title {
+        font-size: var(--font-size-base);
+        font-weight: 500;
+        color: var(--color-text-primary);
+        margin-bottom: var(--spacing-xs);
+        line-height: 1.3;
+    }
+    
+    .calendar-list-task-meta {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+    }
+    
+    .calendar-list-task-category {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+    
+    .calendar-list-task-category-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+    
+    .calendar-list-empty {
+        padding: var(--spacing-xl);
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
     }
 
     .calendar-header {
         flex-direction: column;
         gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
     }
 
     .calendar-nav {
         width: 100%;
         justify-content: center;
+    }
+    
+    .calendar-legend {
+        display: none; /* スマホではリスト形式で明示的なので凡例は不要 */
     }
 }
 

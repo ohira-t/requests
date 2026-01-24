@@ -44,3 +44,5 @@ logs/
 # SQLite database
 database/*.sqlite
 database/*.sqlite-journal
+public/glug_reminders
+public/*.sqlite

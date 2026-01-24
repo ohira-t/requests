@@ -85,10 +85,41 @@ class App {
         document.getElementById('add-category-btn')?.addEventListener('click', () => this.addCategory());
         document.getElementById('add-department-btn')?.addEventListener('click', () => this.addDepartment());
         document.getElementById('add-user-btn')?.addEventListener('click', () => this.addUser());
+        document.getElementById('export-csv-btn')?.addEventListener('click', () => this.downloadCSV());
         this.initSettingsTabs();
         this.initCategoryEditModal();
         this.initUserEditModal();
         this.initChangePasswordModal();
+        
+        // Search clear buttons
+        const deptSearchInput = document.getElementById('department-search');
+        const deptClearBtn = document.getElementById('department-search-clear');
+        const userSearchInput = document.getElementById('user-search');
+        const userClearBtn = document.getElementById('user-search-clear');
+        
+        deptSearchInput?.addEventListener('input', () => {
+            if (deptClearBtn) {
+                deptClearBtn.style.display = deptSearchInput.value ? 'flex' : 'none';
+            }
+        });
+        deptClearBtn?.addEventListener('click', () => {
+            if (deptSearchInput) {
+                deptSearchInput.value = '';
+                deptSearchInput.dispatchEvent(new Event('input'));
+            }
+        });
+        
+        userSearchInput?.addEventListener('input', () => {
+            if (userClearBtn) {
+                userClearBtn.style.display = userSearchInput.value ? 'flex' : 'none';
+            }
+        });
+        userClearBtn?.addEventListener('click', () => {
+            if (userSearchInput) {
+                userSearchInput.value = '';
+                userSearchInput.dispatchEvent(new Event('input'));
+            }
+        });
 
         // Search
         document.getElementById('search-input')?.addEventListener('input', debounce((e) => this.handleSearch(e.target.value), 300));
@@ -2658,6 +2689,9 @@ class App {
             tasksByDate[date].push(task);
         });
         
+        // Check if mobile
+        const isMobile = window.innerWidth <= 768;
+        
         // Generate calendar days
         let daysHtml = '';
         const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
@@ -2703,53 +2737,139 @@ class App {
             `;
         }
         
-        container.innerHTML = `
-            <div class="calendar-view">
-                <div class="calendar-header">
-                    <div class="calendar-nav">
-                        <button class="calendar-nav-btn" id="calendar-prev">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="15 18 9 12 15 6"/>
-                            </svg>
-                        </button>
-                        <h2 class="calendar-title">${year}年 ${monthNames[month]}</h2>
-                        <button class="calendar-nav-btn" id="calendar-next">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9 18 15 12 9 6"/>
-                            </svg>
-                        </button>
+        // スマホ時は縦長リスト表示
+        if (isMobile) {
+            // 月の全日付を生成
+            const listDaysHtml = [];
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                const isToday = dateStr === todayStr;
+                const dayTasks = tasksByDate[dateStr] || [];
+                const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+                const weekday = weekdays[date.getDay()];
+                
+                const classes = ['calendar-list-day'];
+                if (isToday) classes.push('today');
+                if (dayTasks.length > 0) classes.push('has-tasks');
+                
+                const tasksHtml = dayTasks.map(task => {
+                    const isOverdue = task.due_date < todayStr && task.status !== 'done';
+                    const taskClass = isOverdue ? 'overdue' : (task.is_my_task ? 'my-task' : 'my-request');
+                    const category = this.categories.find(c => c.id === task.category_id);
+                    
+                    return `
+                        <div class="calendar-list-task ${taskClass}" data-task-id="${task.id}">
+                            <div class="calendar-list-task-indicator"></div>
+                            <div class="calendar-list-task-content">
+                                <div class="calendar-list-task-title">${escapeHtml(task.title)}</div>
+                                <div class="calendar-list-task-meta">
+                                    ${category ? `
+                                        <span class="calendar-list-task-category">
+                                            <span class="calendar-list-task-category-dot" style="background: ${category.color};"></span>
+                                            ${escapeHtml(category.name)}
+                                        </span>
+                                    ` : ''}
+                                    <span>${task.is_my_task ? '担当' : '依頼中'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                const emptyHtml = dayTasks.length === 0 ? '<div class="calendar-list-empty">タスクなし</div>' : '';
+                
+                listDaysHtml.push(`
+                    <div class="${classes.join(' ')}" data-date="${dateStr}">
+                        <div class="calendar-list-day-header">
+                            <div class="calendar-list-day-date">
+                                <span class="calendar-list-day-number">${day}</span>
+                                <span class="calendar-list-day-weekday">${weekday}曜日</span>
+                            </div>
+                            ${isToday ? '<span class="calendar-list-day-badge">今日</span>' : ''}
+                        </div>
+                        <div class="calendar-list-tasks">
+                            ${tasksHtml}
+                            ${emptyHtml}
+                        </div>
+                    </div>
+                `);
+            }
+            
+            container.innerHTML = `
+                <div class="calendar-view">
+                    <div class="calendar-header">
+                        <div class="calendar-nav">
+                            <button class="calendar-nav-btn" id="calendar-prev">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 18 9 12 15 6"/>
+                                </svg>
+                            </button>
+                            <h2 class="calendar-title">${year}年 ${monthNames[month]}</h2>
+                            <button class="calendar-nav-btn" id="calendar-next">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"/>
+                                </svg>
+                            </button>
+                        </div>
                         <button class="calendar-today-btn" id="calendar-today">今日</button>
                     </div>
-                </div>
-                
-                <div class="calendar-grid">
-                    <div class="calendar-weekdays">
-                        <div class="calendar-weekday">日</div>
-                        <div class="calendar-weekday">月</div>
-                        <div class="calendar-weekday">火</div>
-                        <div class="calendar-weekday">水</div>
-                        <div class="calendar-weekday">木</div>
-                        <div class="calendar-weekday">金</div>
-                        <div class="calendar-weekday">土</div>
-                    </div>
-                    <div class="calendar-days">${daysHtml}</div>
-                </div>
-                
-                <div class="calendar-legend">
-                    <div class="calendar-legend-item">
-                        <span class="legend-color" style="background: var(--color-primary);"></span>
-                        自分のタスク
-                    </div>
-                    <div class="calendar-legend-item">
-                        <span class="legend-color" style="background: var(--color-success);"></span>
-                        依頼したタスク
-                    </div>
-                    <div class="calendar-legend-item">
-                        期限切れ
+                    
+                    <div class="calendar-list-view">
+                        ${listDaysHtml.join('')}
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // PC時は従来のグリッド表示
+            container.innerHTML = `
+                <div class="calendar-view">
+                    <div class="calendar-header">
+                        <div class="calendar-nav">
+                            <button class="calendar-nav-btn" id="calendar-prev">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 18 9 12 15 6"/>
+                                </svg>
+                            </button>
+                            <h2 class="calendar-title">${year}年 ${monthNames[month]}</h2>
+                            <button class="calendar-nav-btn" id="calendar-next">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="9 18 15 12 9 6"/>
+                                </svg>
+                            </button>
+                            <button class="calendar-today-btn" id="calendar-today">今日</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays">
+                            <div class="calendar-weekday">日</div>
+                            <div class="calendar-weekday">月</div>
+                            <div class="calendar-weekday">火</div>
+                            <div class="calendar-weekday">水</div>
+                            <div class="calendar-weekday">木</div>
+                            <div class="calendar-weekday">金</div>
+                            <div class="calendar-weekday">土</div>
+                        </div>
+                        <div class="calendar-days">${daysHtml}</div>
+                    </div>
+                    
+                    <div class="calendar-legend">
+                        <div class="calendar-legend-item">
+                            <span class="legend-color" style="background: var(--color-primary);"></span>
+                            自分のタスク
+                        </div>
+                        <div class="calendar-legend-item">
+                            <span class="legend-color" style="background: var(--color-success);"></span>
+                            依頼したタスク
+                        </div>
+                        <div class="calendar-legend-item">
+                            期限切れ
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
         
         // Event listeners
         document.getElementById('calendar-prev')?.addEventListener('click', () => {
@@ -2767,8 +2887,8 @@ class App {
             this.loadCalendar();
         });
         
-        // Task click handlers
-        container.querySelectorAll('.calendar-task').forEach(el => {
+        // Task click handlers (both grid and list views)
+        container.querySelectorAll('.calendar-task, .calendar-list-task').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const taskId = parseInt(el.dataset.taskId);
@@ -3233,6 +3353,65 @@ class App {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
+    }
+
+    // CSV Export
+    async downloadCSV() {
+        const btn = document.getElementById('export-csv-btn');
+        if (!btn) return;
+        
+        const originalText = btn.innerHTML;
+        
+        try {
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner"><circle cx="12" cy="12" r="10"/></svg><span>ダウンロード中...</span>';
+            btn.style.opacity = '0.7';
+            
+            // Get CSV data from API
+            const response = await fetch('/api/tasks/export', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                throw new Error('ダウンロードに失敗しました');
+            }
+            
+            // Get filename from response header or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'tasks.csv';
+            if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            
+            // Download the file
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            this.showToast('CSVをダウンロードしました', 'success');
+        } catch (error) {
+            console.error('CSV download error:', error);
+            this.showToast(error.message || 'ダウンロードに失敗しました', 'error');
+        } finally {
+            // Restore button state
+            btn.innerHTML = originalText;
+            btn.style.opacity = '1';
+            btn.disabled = false;
+        }
     }
 }
 

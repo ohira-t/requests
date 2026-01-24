@@ -711,4 +711,36 @@ class Task
         
         return $stats;
     }
+    
+    public static function getAllForExport(array $filters = []): array
+    {
+        $sql = "SELECT t.*, 
+                       c.name as creator_name, c.email as creator_email,
+                       a.name as assignee_name, a.email as assignee_email, a.type as assignee_type,
+                       cat.name as category_name
+                FROM tasks t
+                LEFT JOIN users c ON t.creator_id = c.id
+                LEFT JOIN users a ON t.assignee_id = a.id
+                LEFT JOIN categories cat ON t.category_id = cat.id
+                WHERE t.deleted_at IS NULL";
+        $params = [];
+        
+        // Filter by user scope (for staff)
+        if (!empty($filters['user_scope'])) {
+            $userId = $filters['user_scope'];
+            $sql .= " AND (t.assignee_id = ? OR t.creator_id = ?)";
+            $params[] = $userId;
+            $params[] = $userId;
+        }
+        
+        $sql .= " ORDER BY t.created_at DESC";
+        
+        $tasks = Database::fetchAll($sql, $params);
+        
+        foreach ($tasks as &$task) {
+            $task['tags'] = json_decode($task['tags'] ?? '[]', true);
+        }
+        
+        return $tasks;
+    }
 }

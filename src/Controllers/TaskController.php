@@ -12,6 +12,125 @@ use App\Utils\Validator;
 
 class TaskController
 {
+    public function export(): void
+    {
+        $user = StaffMiddleware::handle(); // 管理者・スタッフのみ
+        if (!$user) return;
+        
+        $filters = [];
+        
+        // スタッフは自分に関連するタスクのみ
+        if ($user['role'] === 'staff') {
+            // 自分が担当 OR 自分が作成したタスクのみ
+            $filters['user_scope'] = $user['id'];
+        }
+        // 管理者は全タスク取得可能
+        
+        // Get all tasks
+        $tasks = Task::getAllForExport($filters);
+        
+        // Generate CSV
+        $filename = 'tasks_' . date('Y-m-d_His') . '.csv';
+        
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        // Output BOM for Excel UTF-8 compatibility
+        echo "\xEF\xBB\xBF";
+        
+        // Open output stream
+        $output = fopen('php://output', 'w');
+        
+        // CSV Header
+        $headers = [
+            'チケットID',
+            'タイトル',
+            '説明',
+            '種別',
+            'ステータス',
+            '優先度',
+            'カテゴリー',
+            '担当者',
+            '担当者メール',
+            '作成者',
+            '作成者メール',
+            '期限日',
+            'タグ',
+            '作成日時',
+            '更新日時',
+            '完了日時'
+        ];
+        fputcsv($output, $headers);
+        
+        // CSV Data
+        foreach ($tasks as $task) {
+            $row = [
+                $task['ticket_id'] ?? '',
+                $task['title'] ?? '',
+                $task['description'] ?? '',
+                $this->getTaskTypeLabel($task, $user),
+                $this->getStatusLabel($task['status'] ?? 'pending'),
+                $this->getPriorityLabel($task['priority'] ?? 'medium'),
+                $task['category_name'] ?? '未分類',
+                $task['assignee_name'] ?? '未割当',
+                $task['assignee_email'] ?? '',
+                $task['creator_name'] ?? '',
+                $task['creator_email'] ?? '',
+                $task['due_date'] ?? '',
+                is_array($task['tags']) ? implode(', ', $task['tags']) : ($task['tags'] ?? ''),
+                $task['created_at'] ?? '',
+                $task['updated_at'] ?? '',
+                $task['completed_at'] ?? ''
+            ];
+            fputcsv($output, $row);
+        }
+        
+        fclose($output);
+        exit;
+    }
+    
+    private function getTaskTypeLabel($task, $user): string
+    {
+        if (!isset($task['assignee_id']) || !isset($task['creator_id'])) {
+            return '不明';
+        }
+        
+        $isMyTask = $task['assignee_id'] == $user['id'];
+        $isMyRequest = $task['creator_id'] == $user['id'] && $task['assignee_id'] != $user['id'];
+        $isClientTask = isset($task['assignee_type']) && $task['assignee_type'] === 'client';
+        
+        if ($isMyTask) {
+            return '自分の課題';
+        } elseif ($isMyRequest && $isClientTask) {
+            return 'クライアントへ依頼';
+        } elseif ($isMyRequest) {
+            return 'スタッフへ依頼';
+        } else {
+            return '他のスタッフの課題';
+        }
+    }
+    
+    private function getStatusLabel($status): string
+    {
+        $labels = [
+            'pending' => '未着手',
+            'in_progress' => '進行中',
+            'done' => '完了'
+        ];
+        return $labels[$status] ?? $status;
+    }
+    
+    private function getPriorityLabel($priority): string
+    {
+        $labels = [
+            'urgent' => '緊急',
+            'high' => '高',
+            'medium' => '中',
+            'low' => '低'
+        ];
+        return $labels[$priority] ?? $priority;
+    }
+    
     public function index(): void
     {
         $user = AuthMiddleware::handle();
