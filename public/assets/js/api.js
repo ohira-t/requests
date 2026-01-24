@@ -117,6 +117,14 @@ class API {
         return result;
     }
 
+    async register(data) {
+        const result = await this.post('/auth/register', data);
+        if (result.data?.csrf_token) {
+            this.setCsrfToken(result.data.csrf_token);
+        }
+        return result;
+    }
+
     async logout() {
         return this.post('/auth/logout');
     }
@@ -255,6 +263,10 @@ class API {
 
     async deleteAllNotifications() {
         return this.delete('/notifications/delete-all');
+    }
+
+    async createAnnouncement(data) {
+        return this.post('/notifications/announcement', data);
     }
 
     // Departments

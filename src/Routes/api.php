@@ -100,6 +100,7 @@ function registerRoutes(): Router
     // Auth routes
     $auth = new AuthController();
     $router->post('/auth/login', [$auth, 'login']);
+    $router->post('/auth/register', [$auth, 'register']);
     $router->post('/auth/logout', [$auth, 'logout']);
     $router->get('/auth/me', [$auth, 'me']);
     $router->get('/auth/check', [$auth, 'checkSession']);
@@ -147,6 +148,7 @@ function registerRoutes(): Router
     // Notification routes
     $notification = new NotificationController();
     $router->get('/notifications', [$notification, 'index']);
+    $router->post('/notifications/announcement', [$notification, 'createAnnouncement']);  // Admin only - Must be before {id} routes
     $router->put('/notifications/mark-all-read', [$notification, 'markAllAsRead']);  // Must be before {id} routes
     $router->delete('/notifications/delete-all', [$notification, 'deleteAll']);  // Must be before {id} routes
     $router->put('/notifications/{id}/read', [$notification, 'markAsRead']);

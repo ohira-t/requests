@@ -1,0 +1,74 @@
+# =====================================================
+# Crontab Examples for Requests Backup
+# =====================================================
+# 
+# 使用方法:
+#   1. このファイルを確認して、適切なスケジュールを選択
+#   2. パスを実際の環境に合わせて変更
+#   3. crontab -e でcrontabを開く
+#   4. 選択した行をコピー＆ペースト
+#
+# =====================================================
+
+# ============ パターン1: シンプルな日次バックアップ ============
+# 毎日午前3時に実行（推奨）
+0 3 * * * /path/to/glug-tasks/scripts/backup_complete.sh >> /path/to/logs/backup.log 2>&1
+
+# ============ パターン2: 日次・週次・月次の組み合わせ ============
+# 毎日午前3時（日次・データベースのみ）
+0 3 * * * /path/to/glug-tasks/scripts/backup_mysql.sh >> /path/to/logs/backup_daily.log 2>&1
+
+# 毎週日曜日午前2時（週次・完全バックアップ）
+0 2 * * 0 /path/to/glug-tasks/scripts/backup_complete.sh >> /path/to/logs/backup_weekly.log 2>&1
+
+# 毎月1日午前1時（月次・完全バックアップ）
+0 1 1 * * /path/to/glug-tasks/scripts/backup_complete.sh >> /path/to/logs/backup_monthly.log 2>&1
+
+# ============ パターン3: 頻繁なバックアップ ============
+# 4時間ごと（6:00, 10:00, 14:00, 18:00, 22:00）
+0 6,10,14,18,22 * * * /path/to/glug-tasks/scripts/backup_mysql.sh >> /path/to/logs/backup.log 2>&1
+
+# 2時間ごと（営業時間のみ: 9:00-19:00）
+0 9-19/2 * * * /path/to/glug-tasks/scripts/backup_mysql.sh >> /path/to/logs/backup.log 2>&1
+
+# ============ パターン4: オフサイトバックアップ付き ============
+# 毎日午前3時にバックアップ
+0 3 * * * /path/to/glug-tasks/scripts/backup_complete.sh >> /path/to/logs/backup.log 2>&1
+
+# 毎日午前4時にリモートサーバーに転送
+0 4 * * * rsync -avz /path/to/backups/ backup@remote:/backups/glug-tasks/ >> /path/to/logs/rsync.log 2>&1
+
+# ============ パターン5: 世代別バックアップ ============
+# 毎日午前3時（30日間保持）
+0 3 * * * /path/to/glug-tasks/scripts/backup_complete.sh >> /path/to/logs/backup.log 2>&1
+
+# 毎月1日に長期保存用コピーを作成
+0 5 1 * * cp -r $(ls -td /path/to/backups/20* | head -1) /path/to/backups/monthly/$(date +\%Y\%m)
+
+# ============ ログローテーション ============
+# ログファイルが大きくなりすぎないよう、毎週日曜日にクリア
+0 0 * * 0 echo "--- Log rotated on $(date) ---" > /path/to/logs/backup.log
+
+# =====================================================
+# Cron時刻の書式
+# =====================================================
+# 分 時 日 月 曜日
+# * * * * * コマンド
+#
+# 例:
+# 30 2 * * * → 毎日2:30
+# 0 3 * * 0  → 毎週日曜3:00
+# 0 1 1 * *  → 毎月1日1:00
+# */30 * * * * → 30分ごと
+# 0 9-17 * * 1-5 → 平日9時-17時の毎時0分
+#
+# =====================================================
+# メール通知（オプション）
+# =====================================================
+# エラー時にメール通知を受け取る場合
+# MAILTO=your_email@example.com
+#
+# 出力を抑制したい場合
+# 0 3 * * * command > /dev/null 2>&1
+#
+# =====================================================

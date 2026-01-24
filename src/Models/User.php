@@ -89,6 +89,52 @@ class User
         return self::getAll(['type' => 'client']);
     }
     
+    public static function getAllActive(): array
+    {
+        return Database::fetchAll(
+            "SELECT u.id, u.name, u.email, u.role, u.type, u.company, u.department_id, 
+                    u.created_at, u.updated_at,
+                    d.name as department_name, d.color as department_color
+             FROM users u
+             LEFT JOIN departments d ON u.department_id = d.id AND d.deleted_at IS NULL
+             WHERE u.deleted_at IS NULL
+             ORDER BY u.type ASC, u.display_order ASC, u.name ASC"
+        );
+    }
+    
+    public static function getByRole(array $roles): array
+    {
+        $placeholders = implode(',', array_fill(0, count($roles), '?'));
+        return Database::fetchAll(
+            "SELECT u.id, u.name, u.email, u.role, u.type, u.company, u.department_id, 
+                    u.created_at, u.updated_at,
+                    d.name as department_name, d.color as department_color
+             FROM users u
+             LEFT JOIN departments d ON u.department_id = d.id AND d.deleted_at IS NULL
+             WHERE u.deleted_at IS NULL AND u.role IN ($placeholders)
+             ORDER BY u.type ASC, u.display_order ASC, u.name ASC",
+            $roles
+        );
+    }
+    
+    public static function getByIds(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        return Database::fetchAll(
+            "SELECT u.id, u.name, u.email, u.role, u.type, u.company, u.department_id, 
+                    u.created_at, u.updated_at,
+                    d.name as department_name, d.color as department_color
+             FROM users u
+             LEFT JOIN departments d ON u.department_id = d.id AND d.deleted_at IS NULL
+             WHERE u.deleted_at IS NULL AND u.id IN ($placeholders)
+             ORDER BY u.type ASC, u.display_order ASC, u.name ASC",
+            $ids
+        );
+    }
+    
     public static function create(array $data): int
     {
         $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);

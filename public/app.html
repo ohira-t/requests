@@ -51,7 +51,58 @@
                 </form>
                 
                 <div class="login-footer">
-                    <p class="login-hint"></p>
+                    <button type="button" class="btn-register-link" id="show-register-btn">
+                        アカウントをお持ちでない方は<span style="color: var(--color-primary); font-weight: 600;">こちら</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Register Form -->
+            <div class="login-container" id="register-container" style="display: none;">
+                <div class="login-header">
+                    <div class="login-logo">
+                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="12" fill="url(#logo-gradient-register)"/>
+                            <path d="M14 24L21 31L34 18" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="logo-gradient-register" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#007AFF" stop-opacity="0.8"/>
+                                    <stop offset="1" stop-color="#007AFF"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 class="login-title">新規登録</h1>
+                    <p class="login-subtitle">スタッフアカウントを作成</p>
+                </div>
+                
+                <form id="register-form" class="login-form">
+                    <div class="form-group">
+                        <label for="register-name">名前 <span class="required">*</span></label>
+                        <input type="text" id="register-name" name="name" placeholder="山田太郎" required autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">メールアドレス <span class="required">*</span></label>
+                        <input type="email" id="register-email" name="email" placeholder="email@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">パスワード <span class="required">*</span></label>
+                        <input type="password" id="register-password" name="password" placeholder="••••••••" required autocomplete="new-password">
+                        <small style="color: #8e8e93; font-size: 13px; margin-top: 4px; display: block;">6文字以上で入力してください</small>
+                    </div>
+                    <div id="register-error" class="form-error" style="display: none;"></div>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        <span class="btn-text">登録</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </form>
+                
+                <div class="login-footer">
+                    <button type="button" class="btn-register-link" id="show-login-btn">
+                        既にアカウントをお持ちの方は<span style="color: var(--color-primary); font-weight: 600;">ログイン</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -109,7 +160,7 @@
                         </span>
                         <span class="tab-text">クライアント別</span>
                     </button>
-                    <!-- 部署別タブは将来の拡張用に非表示 -->
+                    <!-- 統計タブ（管理者のみ表示） -->
                     <button class="view-tab" data-view="stats" id="stats-tab" style="display: none;">
                         <span class="tab-icon">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -574,6 +625,12 @@
             <div class="notifications-header">
                 <h3>通知</h3>
                 <div class="notifications-actions">
+                    <button class="notifications-action-btn" id="create-announcement-btn" title="お知らせを作成" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
                     <button class="notifications-action-btn" id="mark-all-read-btn" title="すべて既読">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="20 6 9 17 4 12"/>
@@ -625,6 +682,50 @@
                     <button type="button" class="btn btn-secondary" id="change-password-cancel">キャンセル</button>
                     <button type="submit" form="change-password-form" class="btn btn-primary" id="change-password-submit">
                         <span class="btn-text">変更</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Announcement Modal (Admin Only) -->
+        <div id="announcement-modal" class="modal-overlay" style="display: none;">
+            <div class="modal modal-small">
+                <div class="modal-grabber"></div>
+                <div class="modal-header">
+                    <h2 class="modal-title">お知らせを作成</h2>
+                    <button class="modal-close" id="announcement-close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="announcement-form" class="modal-body">
+                    <div class="form-group">
+                        <label for="announcement-title">タイトル <span class="required">*</span></label>
+                        <input type="text" id="announcement-title" class="input" placeholder="お知らせのタイトルを入力" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="announcement-message">メッセージ <span class="required">*</span></label>
+                        <textarea id="announcement-message" class="input" rows="4" placeholder="お知らせの内容を入力" required style="height: auto; padding: 12px 16px; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="announcement-target">配信対象 <span class="required">*</span></label>
+                        <select id="announcement-target" class="input" required>
+                            <option value="all">全ユーザー</option>
+                            <option value="staff">スタッフのみ</option>
+                            <option value="clients">クライアントのみ</option>
+                        </select>
+                    </div>
+                    <div id="announcement-error" class="form-error" style="display: none;"></div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="announcement-cancel">キャンセル</button>
+                    <button type="submit" form="announcement-form" class="btn btn-primary" id="announcement-submit">
+                        <span class="btn-text">送信</span>
                         <span class="btn-loading" style="display: none;">
                             <span class="spinner"></span>
                         </span>

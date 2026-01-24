@@ -124,4 +124,56 @@ class AuthController
         
         Response::success(['message' => 'パスワードを変更しました']);
     }
+    
+    /**
+     * 新規ユーザー登録（スタッフとして登録）
+     */
+    public function register(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        
+        $validator = Validator::make($data)
+            ->required('name', '名前は必須です')
+            ->required('email', 'メールアドレスは必須です')
+            ->email('email')
+            ->required('password', 'パスワードは必須です')
+            ->min('password', 6, 'パスワードは6文字以上で入力してください');
+        
+        if ($validator->fails()) {
+            Response::validationError($validator->errors());
+            return;
+        }
+        
+        // Check if email already exists
+        $existingUser = User::findByEmail($data['email']);
+        if ($existingUser) {
+            Response::error('EMAIL_EXISTS', 'このメールアドレスは既に登録されています', 400);
+            return;
+        }
+        
+        // Create new user as staff
+        try {
+            $userId = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'role' => 'staff',
+                'type' => 'internal',
+                'department_id' => $data['department_id'] ?? null,
+            ]);
+            
+            // Auto-login after registration
+            $user = User::findById($userId);
+            Session::start();
+            Session::login(User::toSafeArray($user));
+            
+            Response::success([
+                'message' => 'アカウントを作成しました',
+                'user' => User::toSafeArray($user),
+                'csrf_token' => Session::generateCsrfToken(),
+            ], 201);
+        } catch (\Exception $e) {
+            Response::error('REGISTRATION_FAILED', 'アカウントの作成に失敗しました', 500);
+        }
+    }
 }

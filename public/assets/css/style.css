@@ -324,6 +324,20 @@ select.input:focus {
     color: var(--color-text-secondary);
 }
 
+.btn-register-link {
+    background: none;
+    border: none;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.btn-register-link:hover {
+    opacity: 0.7;
+}
+
 /* ============================================
    Buttons
    ============================================ */
@@ -451,6 +465,16 @@ select.input:focus {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+}
+
+.logo:hover {
+    opacity: 0.8;
+}
+
+.logo:active {
+    opacity: 0.6;
 }
 
 .logo svg {
@@ -2232,17 +2256,17 @@ body[data-view="calendar"] .board-container {
     
     .view-tab {
         flex: 1 !important;
-        max-width: 90px !important;
-        min-width: 60px !important;
+        max-width: 76px !important;
+        min-width: 52px !important;
         flex-direction: column !important;
         align-items: center !important;
         justify-content: flex-start !important;
         gap: 1px !important;
         /* タップ領域を広げる - 上下のパディングを増やす */
-        padding: 4px 4px 2px !important;
-        font-size: 10px !important;
+        padding: 4px 1px 2px !important;
+        font-size: 9px !important;
         font-weight: 500 !important;
-        letter-spacing: -0.2px !important;
+        letter-spacing: -0.15px !important;
         border-radius: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
@@ -2262,20 +2286,20 @@ body[data-view="calendar"] .board-container {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        /* アイコンサイズを統一 */
-        width: 28px !important;
-        height: 28px !important;
+        /* アイコンサイズを統一（5タブ対応） */
+        width: 26px !important;
+        height: 26px !important;
         margin-bottom: 0 !important;
     }
     
     .view-tab .tab-icon svg {
-        width: 26px !important;
-        height: 26px !important;
+        width: 24px !important;
+        height: 24px !important;
         stroke-width: 1.8 !important;
     }
     
     .view-tab.active .tab-icon svg {
-        stroke-width: 2.2 !important;
+        stroke-width: 2.3 !important;
     }
     
     .view-tab .tab-text {
@@ -3931,6 +3955,11 @@ body[data-view="calendar"] .board-container {
     color: var(--color-warning);
 }
 
+.notification-icon.announcement {
+    background: rgba(175, 82, 222, 0.1);
+    color: #AF52DE;
+}
+
 .notification-content {
     flex: 1;
     min-width: 0;
@@ -3965,6 +3994,39 @@ body[data-view="calendar"] .board-container {
         width: 100%;
         max-height: 100%;
         border-radius: 0;
+    }
+    
+    .notifications-header {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+    
+    .notifications-header h3 {
+        font-size: var(--font-size-lg);
+    }
+    
+    .notification-item {
+        padding: var(--spacing-md);
+    }
+    
+    .notification-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .notification-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .notification-title {
+        font-size: var(--font-size-base);
+        line-height: 1.3;
+    }
+    
+    .notification-message {
+        font-size: var(--font-size-sm);
+        line-height: 1.4;
+        word-break: break-word;
     }
 }
 
@@ -4157,6 +4219,81 @@ body[data-view="calendar"] .board-container {
 
     .client-task-meta {
         gap: var(--spacing-sm);
+    }
+    
+    /* Settings - User list improvements for mobile (Apple-style) */
+    .user-item {
+        flex-wrap: nowrap;
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
+        align-items: center;
+        min-height: 64px;
+        border-radius: var(--radius-md);
+    }
+    
+    .user-item .user-avatar-sm {
+        width: 44px;
+        height: 44px;
+        font-size: var(--font-size-base);
+        flex-shrink: 0;
+    }
+    
+    .user-item .user-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .user-item .name {
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+    
+    .user-item .email {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.2;
+    }
+    
+    .user-item .role-badge {
+        font-size: var(--font-size-xs);
+        padding: 4px 8px;
+        flex-shrink: 0;
+        white-space: nowrap;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    
+    /* Edit mode adjustments */
+    .edit-mode .user-item {
+        padding-left: var(--spacing-xs);
+        gap: var(--spacing-sm);
+    }
+    
+    .edit-mode .user-item .user-avatar-sm {
+        width: 40px;
+        height: 40px;
+    }
+    
+    /* Department item improvements */
+    .department-item {
+        padding: var(--spacing-md);
+    }
+    
+    .department-item .name {
+        font-size: var(--font-size-base);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

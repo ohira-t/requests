@@ -38,6 +38,11 @@ class App {
     bindEvents() {
         // Login form
         document.getElementById('login-form')?.addEventListener('submit', (e) => this.handleLogin(e));
+        
+        // Register form
+        document.getElementById('register-form')?.addEventListener('submit', (e) => this.handleRegister(e));
+        document.getElementById('show-register-btn')?.addEventListener('click', () => this.showRegisterForm());
+        document.getElementById('show-login-btn')?.addEventListener('click', () => this.showLoginForm());
 
         // Logout
         document.getElementById('logout-btn')?.addEventListener('click', () => this.handleLogout());
@@ -49,6 +54,7 @@ class App {
         document.getElementById('notifications-btn')?.addEventListener('click', () => this.toggleNotificationsPanel());
         document.getElementById('notifications-close')?.addEventListener('click', () => this.closeNotificationsPanel());
         document.getElementById('mark-all-read-btn')?.addEventListener('click', () => this.markAllNotificationsAsRead());
+        document.getElementById('create-announcement-btn')?.addEventListener('click', () => this.openAnnouncementModal());
 
         // User menu
         document.getElementById('user-avatar-btn')?.addEventListener('click', () => this.toggleUserMenu());
@@ -62,6 +68,20 @@ class App {
         // View tabs
         document.querySelectorAll('.view-tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchView(tab.dataset.view));
+        });
+        
+        // Logo click - return to home
+        document.getElementById('app-logo')?.addEventListener('click', () => {
+            if (this.user) {
+                // Client: Return to stats (their home)
+                if (this.user.role === 'client') {
+                    this.switchView('stats');
+                } 
+                // Admin/Staff: Return to my tasks
+                else {
+                    this.switchView('my');
+                }
+            }
         });
 
         // New task button
@@ -90,6 +110,7 @@ class App {
         this.initCategoryEditModal();
         this.initUserEditModal();
         this.initChangePasswordModal();
+        this.initAnnouncementModal();
         
         // Search clear buttons
         const deptSearchInput = document.getElementById('department-search');
@@ -475,8 +496,71 @@ class App {
         this.showLogin();
     }
 
+    showLoginForm() {
+        const loginContainer = document.querySelector('.login-container:not(#register-container)');
+        const registerContainer = document.getElementById('register-container');
+        if (loginContainer) loginContainer.style.display = 'block';
+        if (registerContainer) registerContainer.style.display = 'none';
+        
+        // Clear register form
+        const registerForm = document.getElementById('register-form');
+        if (registerForm) registerForm.reset();
+        const registerError = document.getElementById('register-error');
+        if (registerError) registerError.style.display = 'none';
+    }
+
+    showRegisterForm() {
+        const loginContainer = document.querySelector('.login-container:not(#register-container)');
+        const registerContainer = document.getElementById('register-container');
+        if (loginContainer) loginContainer.style.display = 'none';
+        if (registerContainer) registerContainer.style.display = 'block';
+        
+        // Clear login form
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) loginForm.reset();
+        const loginError = document.getElementById('login-error');
+        if (loginError) loginError.style.display = 'none';
+        
+        // Focus on first input
+        const nameInput = document.getElementById('register-name');
+        if (nameInput) nameInput.focus();
+    }
+
+    async handleRegister(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const name = form.name.value;
+        const email = form.email.value;
+        const password = form.password.value;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const errorDiv = document.getElementById('register-error');
+
+        // Show loading
+        submitBtn.querySelector('.btn-text').style.display = 'none';
+        submitBtn.querySelector('.btn-loading').style.display = 'flex';
+        submitBtn.disabled = true;
+        errorDiv.style.display = 'none';
+
+        try {
+            const result = await api.register({ name, email, password });
+            this.user = result.data.user;
+            this.showToast('アカウントを作成しました', 'success');
+            this.showMainApp();
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.style.display = 'block';
+        } finally {
+            submitBtn.querySelector('.btn-text').style.display = 'inline';
+            submitBtn.querySelector('.btn-loading').style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    }
+
     updateUserUI() {
         if (!this.user) return;
+
+        console.log('Updating user UI for:', this.user.name, 'Role:', this.user.role);
 
         const initials = this.user.name.charAt(0).toUpperCase();
         const userInitials = document.getElementById('user-initials');
@@ -493,14 +577,21 @@ class App {
             const departmentTab = document.getElementById('department-tab');
             if (departmentTab) departmentTab.style.display = 'flex';
         }
+        
+        // Show stats tab for all users (admin, staff, client)
+        const statsTab = document.getElementById('stats-tab');
+        if (statsTab) {
+            statsTab.style.display = 'flex';
+        } else {
+            console.warn('Stats tab element not found');
+        }
 
-        // Show admin features
+        // Show admin-only features
         if (this.user.role === 'admin') {
             const usersTab = document.getElementById('users-tab');
-            if (usersTab) usersTab.style.display = 'flex';
-            
-            const statsTab = document.getElementById('stats-tab');
-            if (statsTab) statsTab.style.display = 'flex';
+            if (usersTab) {
+                usersTab.style.display = 'flex';
+            }
             
             const adminUsersLink = document.getElementById('admin-users-link');
             if (adminUsersLink) adminUsersLink.style.display = 'flex';
@@ -515,7 +606,17 @@ class App {
             const newTaskBtn = document.getElementById('new-task-btn');
             const settingsBtn = document.getElementById('settings-btn');
 
-            if (viewTabs) viewTabs.style.display = 'none';
+            // Hide view tabs except stats and calendar
+            if (viewTabs) {
+                // Hide irrelevant tabs for clients
+                document.querySelectorAll('.view-tab').forEach(tab => {
+                    const view = tab.dataset.view;
+                    if (view === 'my' || view === 'requested' || view === 'clients') {
+                        tab.style.display = 'none';
+                    }
+                });
+            }
+            
             if (newTaskBtn) newTaskBtn.style.display = 'none';
             if (settingsBtn) settingsBtn.style.display = 'none';
 
@@ -528,6 +629,10 @@ class App {
             if (userName && this.user.company) {
                 userName.textContent = this.user.company;
             }
+            
+            // Automatically switch to stats view for clients
+            this.currentView = 'stats';
+            document.body.setAttribute('data-view', 'stats');
         }
     }
 
@@ -3020,6 +3125,18 @@ class App {
         const stats = this.stats;
 
         if (!stats) return;
+        
+        // タイトルをロールごとに変更
+        let statsTitle = '統計ダッシュボード';
+        if (this.user) {
+            if (this.user.role === 'admin') {
+                statsTitle = '統計ダッシュボード（全体）';
+            } else if (this.user.role === 'client') {
+                statsTitle = 'マイタスク統計';
+            } else {
+                statsTitle = 'マイタスク統計';
+            }
+        }
 
         const statusData = [
             { label: 'バックログ', value: parseInt(stats.backlog) || 0, color: '#8E8E93' },
@@ -3039,7 +3156,7 @@ class App {
         container.innerHTML = `
             <div class="stats-view">
                 <div class="stats-header">
-                    <h2 class="stats-title">統計ダッシュボード</h2>
+                    <h2 class="stats-title">${escapeHtml(statsTitle)}</h2>
                 </div>
 
                 <div class="stats-grid">
@@ -3215,6 +3332,79 @@ class App {
         }
     }
 
+    // Announcement Modal (Admin only)
+    initAnnouncementModal() {
+        const modal = document.getElementById('announcement-modal');
+        const form = document.getElementById('announcement-form');
+        const closeBtn = document.getElementById('announcement-close');
+        const cancelBtn = document.getElementById('announcement-cancel');
+
+        closeBtn?.addEventListener('click', () => this.closeAnnouncementModal());
+        cancelBtn?.addEventListener('click', () => this.closeAnnouncementModal());
+
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeAnnouncementModal();
+        });
+
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleCreateAnnouncement();
+        });
+    }
+
+    openAnnouncementModal() {
+        const modal = document.getElementById('announcement-modal');
+        const form = document.getElementById('announcement-form');
+        const errorDiv = document.getElementById('announcement-error');
+        
+        form.reset();
+        errorDiv.style.display = 'none';
+        modal.style.display = 'flex';
+        document.getElementById('announcement-title').focus();
+        
+        // Close notifications panel
+        this.closeNotificationsPanel();
+    }
+
+    closeAnnouncementModal() {
+        document.getElementById('announcement-modal').style.display = 'none';
+    }
+
+    async handleCreateAnnouncement() {
+        const submitBtn = document.getElementById('announcement-submit');
+        const errorDiv = document.getElementById('announcement-error');
+        const title = document.getElementById('announcement-title').value;
+        const message = document.getElementById('announcement-message').value;
+        const targetType = document.getElementById('announcement-target').value;
+
+        errorDiv.style.display = 'none';
+
+        submitBtn.querySelector('.btn-text').style.display = 'none';
+        submitBtn.querySelector('.btn-loading').style.display = 'flex';
+        submitBtn.disabled = true;
+
+        try {
+            const result = await api.createAnnouncement({
+                title,
+                message,
+                target_type: targetType
+            });
+
+            this.closeAnnouncementModal();
+            this.showToast(result.data.message || 'お知らせを送信しました', 'success');
+            
+            // Reload notifications
+            await this.loadNotifications();
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.style.display = 'block';
+        } finally {
+            submitBtn.querySelector('.btn-text').style.display = 'inline';
+            submitBtn.querySelector('.btn-loading').style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    }
+
     // Notifications
     async loadNotifications() {
         try {
@@ -3258,6 +3448,12 @@ class App {
         const panel = document.getElementById('notifications-panel');
         panel.style.display = 'flex';
         this.renderNotifications();
+        
+        // Show create announcement button for admins only
+        const createAnnouncementBtn = document.getElementById('create-announcement-btn');
+        if (createAnnouncementBtn && this.user && this.user.role === 'admin') {
+            createAnnouncementBtn.style.display = 'flex';
+        }
 
         // Close on outside click
         setTimeout(() => {
@@ -3293,6 +3489,7 @@ class App {
                 task_completed: '<polyline points="20 6 9 17 4 12"/>',
                 comment_added: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
                 task_updated: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+                announcement: '<path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>'
             };
 
             const icon = typeIcons[notif.type] || typeIcons.task_assigned;

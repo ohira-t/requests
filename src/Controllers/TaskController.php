@@ -426,11 +426,16 @@ class TaskController
         
         $filters = [];
         
-        // For clients, only show stats for their assigned tasks
-        if ($user['role'] === 'client') {
+        // Admin: Show all tasks stats
+        if ($user['role'] === 'admin') {
+            // No filters - show all tasks
+        }
+        // Client: Only show stats for tasks assigned to them
+        elseif ($user['role'] === 'client') {
             $filters['assignee_id'] = $user['id'];
-        } else {
-            // For staff, only show stats for tasks they're involved in
+        }
+        // Staff: Show stats for tasks they're involved in (assigned to or created by)
+        else {
             $filters['involved_user_id'] = $user['id'];
         }
         
