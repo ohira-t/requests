@@ -33,6 +33,24 @@ class App {
         }
 
         this.bindEvents();
+        
+        // Hide loading screen after authentication check
+        this.hideLoadingScreen();
+    }
+    
+    hideLoadingScreen() {
+        const loadingScreen = document.getElementById('app-loading');
+        const app = document.getElementById('app');
+        
+        if (loadingScreen && app) {
+            loadingScreen.classList.add('hide');
+            app.style.display = 'block';
+            
+            // Remove loading screen from DOM after animation
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 300);
+        }
     }
 
     bindEvents() {

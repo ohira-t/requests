@@ -105,6 +105,91 @@ html {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================
+   App Loading Screen (Apple-style)
+   ============================================ */
+.app-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.app-loading.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.app-loading .loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xl);
+}
+
+.app-loading .loading-logo {
+    width: 80px;
+    height: 80px;
+    opacity: 0.95;
+    animation: loadingLogoFade 1.5s ease-in-out infinite;
+}
+
+.app-loading .loading-spinner {
+    width: 32px;
+    height: 32px;
+}
+
+.app-loading .loading-spinner svg {
+    animation: loadingSpinnerRotate 1s linear infinite;
+    width: 100%;
+    height: 100%;
+}
+
+.app-loading .loading-spinner circle {
+    stroke: var(--theme-color);
+    stroke-linecap: round;
+    stroke-dasharray: 80, 200;
+    stroke-dashoffset: 0;
+    animation: loadingSpinnerDash 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingLogoFade {
+    0%, 100% {
+        opacity: 0.95;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes loadingSpinnerRotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loadingSpinnerDash {
+    0% {
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 200;
+        stroke-dashoffset: -35px;
+    }
+    100% {
+        stroke-dasharray: 90, 200;
+        stroke-dashoffset: -125px;
+    }
+}
+
 body {
     font-family: var(--font-family);
     font-size: var(--font-size-base);

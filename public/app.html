@@ -11,7 +11,28 @@
     <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
-    <div id="app">
+    <!-- Loading Screen (Apple-style) -->
+    <div id="app-loading" class="app-loading">
+        <div class="loading-content">
+            <svg class="loading-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="12" fill="url(#loading-logo-gradient)"/>
+                <path d="M14 24L21 31L34 18" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="loading-logo-gradient" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#007AFF" stop-opacity="0.8"/>
+                        <stop offset="1" stop-color="#007AFF"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="loading-spinner">
+                <svg viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke-width="3"></circle>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
         <!-- Login Screen -->
         <div id="login-screen" class="screen">
             <div class="login-container">
