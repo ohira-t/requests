@@ -197,6 +197,13 @@ body {
     color: var(--color-text-primary);
     background-color: var(--color-bg);
     min-height: 100vh;
+    /* Prevent mobile overscroll (rubber band effect) */
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 button {
@@ -225,6 +232,13 @@ a {
 
 #app {
     min-height: 100vh;
+    /* Allow scrolling within the app container */
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
 }
 
 /* ============================================
@@ -236,6 +250,13 @@ a {
     justify-content: center;
     background: linear-gradient(135deg, #F2F2F7 0%, #E5E5EA 100%);
     padding: var(--spacing-lg);
+    /* Allow scrolling within login screen */
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
 }
 
 .login-container {
@@ -1164,7 +1185,7 @@ body[data-view="calendar"] .board-container {
     color: var(--color-warning);
 }
 
-.task-from {
+.task-assignee {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
@@ -4289,7 +4310,7 @@ body[data-view="calendar"] .board-container {
     font-weight: 600;
 }
 
-.client-task-from {
+.client-task-assignee {
     font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
 }

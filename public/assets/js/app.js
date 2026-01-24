@@ -897,6 +897,14 @@ class App {
         const dueInfo = this.formatDueDate(task.due_date);
         const priorityLabels = { urgent: '緊急', high: '高', medium: '中', low: '低' };
         const priorityColors = { urgent: '#FF3B30', high: '#FF9500', medium: '#007AFF', low: '#8E8E93' };
+        
+        // Assignee display logic
+        let assigneeDisplay = '';
+        if (task.assignee_id === this.user?.id || !task.assignee_id) {
+            assigneeDisplay = '→自分';
+        } else if (task.assignee_name) {
+            assigneeDisplay = `→${task.assignee_name}`;
+        }
 
         return `
             <div class="client-task-item ${isCompleted ? 'completed' : ''} ${!isOwn ? 'assigned-task' : ''}" data-id="${task.id}">
@@ -910,7 +918,7 @@ class App {
                     <div class="client-task-meta">
                         ${dueInfo ? `<span class="task-due ${dueInfo.class}">${dueInfo.text}</span>` : '<span class="task-due no-due">期限なし</span>'}
                         <span class="client-task-priority" style="color: ${priorityColors[task.priority]}">${priorityLabels[task.priority]}</span>
-                        ${task.creator_name ? `<span class="client-task-from">${escapeHtml(task.creator_name)}</span>` : ''}
+                        ${assigneeDisplay ? `<span class="client-task-assignee">${assigneeDisplay}</span>` : ''}
                     </div>
                     ${task.description ? `<div class="client-task-desc">${escapeHtml(task.description.substring(0, 100))}${task.description.length > 100 ? '...' : ''}</div>` : ''}
                 </div>
@@ -1418,6 +1426,14 @@ class App {
         const displayTags = tags.slice(0, 3);
         const moreTags = tags.length > 3 ? tags.length - 3 : 0;
         const isDraggable = !isCompact && this.user?.role !== 'client';
+        
+        // Assignee display logic
+        let assigneeDisplay = '';
+        if (task.assignee_id === this.user?.id || !task.assignee_id) {
+            assigneeDisplay = '→自分';
+        } else if (task.assignee_name) {
+            assigneeDisplay = `→${task.assignee_name}`;
+        }
 
         return `
             <div class="task-card ${isCompact ? 'compact' : ''} ${task.status === 'done' ? 'completed' : ''} ${!isOwn ? 'assigned-task' : ''}" 
@@ -1443,7 +1459,7 @@ class App {
                 ${!isCompact ? `
                 <div class="task-meta">
                     ${dueInfo ? `<span class="task-due ${dueInfo.class}">${dueInfo.text}</span>` : ''}
-                    ${task.creator_name ? `<span class="task-from">${escapeHtml(task.creator_name)}</span>` : ''}
+                    ${assigneeDisplay ? `<span class="task-assignee">${assigneeDisplay}</span>` : ''}
                 </div>
                 <div class="task-tags">
                     ${task.category_name ? `<span class="tag category" style="--tag-color: ${task.category_color}">${escapeHtml(task.category_name)}</span>` : ''}
