@@ -2060,14 +2060,14 @@ class App {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         
-        const target = e.target.closest('.department-item, .user-item');
+        const target = e.target.closest('.category-item, .department-item, .user-item');
         if (target && target !== this.draggedListItem) {
             target.classList.add('drag-over');
         }
     }
     
     handleListDragLeave(e) {
-        const target = e.target.closest('.department-item, .user-item');
+        const target = e.target.closest('.category-item, .department-item, .user-item');
         if (target) {
             target.classList.remove('drag-over');
         }
@@ -2076,7 +2076,10 @@ class App {
     handleListDrop(e, type) {
         e.preventDefault();
         
-        const target = e.target.closest(`.${type === 'departments' ? 'department' : 'user'}-item`);
+        const itemClass = type === 'categories' ? 'category-item' : 
+                          type === 'departments' ? 'department-item' : 
+                          'user-item';
+        const target = e.target.closest(`.${itemClass}`);
         if (!target || !this.draggedListItem || target === this.draggedListItem) return;
         
         target.classList.remove('drag-over');

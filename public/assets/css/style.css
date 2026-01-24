@@ -1681,6 +1681,7 @@ body[data-view="calendar"] .board-container {
     height: 2px;
     background: transparent;
     transition: background var(--transition-fast);
+    z-index: 1;
 }
 
 .settings-tab:hover {
