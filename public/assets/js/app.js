@@ -909,7 +909,7 @@ class App {
                     <div class="client-task-meta">
                         ${dueInfo ? `<span class="task-due ${dueInfo.class}">${dueInfo.text}</span>` : '<span class="task-due no-due">期限なし</span>'}
                         <span class="client-task-priority" style="color: ${priorityColors[task.priority]}">${priorityLabels[task.priority]}</span>
-                        ${task.creator_name ? `<span class="client-task-from">依頼者: ${escapeHtml(task.creator_name)}</span>` : ''}
+                        ${task.creator_name ? `<span class="client-task-from">${escapeHtml(task.creator_name)}</span>` : ''}
                     </div>
                     ${task.description ? `<div class="client-task-desc">${escapeHtml(task.description.substring(0, 100))}${task.description.length > 100 ? '...' : ''}</div>` : ''}
                 </div>
@@ -1442,7 +1442,7 @@ class App {
                 ${!isCompact ? `
                 <div class="task-meta">
                     ${dueInfo ? `<span class="task-due ${dueInfo.class}">${dueInfo.text}</span>` : ''}
-                    ${task.creator_name ? `<span class="task-from">from ${escapeHtml(task.creator_name)}</span>` : ''}
+                    ${task.creator_name ? `<span class="task-from">${escapeHtml(task.creator_name)}</span>` : ''}
                 </div>
                 <div class="task-tags">
                     ${task.category_name ? `<span class="tag category" style="--tag-color: ${task.category_color}">${escapeHtml(task.category_name)}</span>` : ''}
@@ -1483,15 +1483,25 @@ class App {
         if (diffDays < 0) {
             return { text: `${Math.abs(diffDays)}日超過`, class: 'overdue' };
         } else if (diffDays === 0) {
-            return { text: '今日まで', class: 'today' };
+            return { text: '今日', class: 'today' };
         } else if (diffDays === 1) {
-            return { text: '明日まで', class: 'soon' };
+            return { text: '明日', class: 'soon' };
         } else if (diffDays <= 3) {
             return { text: `残り${diffDays}日`, class: 'soon' };
         } else {
             const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-            const dateStr = `${due.getFullYear()}/${String(due.getMonth() + 1).padStart(2, '0')}/${String(due.getDate()).padStart(2, '0')}`;
-            return { text: `${dateStr}（${weekdays[due.getDay()]}）まで`, class: '' };
+            const currentYear = today.getFullYear();
+            const dueYear = due.getFullYear();
+            
+            // Show year only if different from current year
+            let dateStr;
+            if (currentYear === dueYear) {
+                dateStr = `${String(due.getMonth() + 1).padStart(2, '0')}/${String(due.getDate()).padStart(2, '0')}`;
+            } else {
+                dateStr = `${dueYear}/${String(due.getMonth() + 1).padStart(2, '0')}/${String(due.getDate()).padStart(2, '0')}`;
+            }
+            
+            return { text: `${dateStr}(${weekdays[due.getDay()]})`, class: '' };
         }
     }
 
