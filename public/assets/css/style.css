@@ -2089,30 +2089,42 @@ body[data-view="calendar"] .board-container {
         --column-width: 280px;
     }
     
-    /* ヘッダーのレイアウト変更 - iOS標準1行パターン */
+    /* ヘッダーのレイアウト変更 - iOS標準NavigationBarに準拠 */
     .app-header {
-        height: 56px;
-        padding: var(--spacing-xs) var(--spacing-md);
+        height: 56px; /* iOS標準: 44pt + status bar margin */
+        padding: 6px 12px;
         flex-wrap: nowrap;
-        gap: var(--spacing-sm);
+        gap: 0;
         align-items: center;
     }
     
     /* 左側: ロゴ */
     .header-left {
-        flex: 0 0 auto;
+        flex: 1 1 auto;
         order: 1;
     }
     
     .logo {
         flex: 0 0 auto;
+        gap: var(--spacing-xs);
     }
     
-    /* 右側: ベル、設定、ユーザーアイコン、+ボタン */
+    .logo svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .logo-text {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+    
+    /* 右側: 通知、ユーザー、+ボタンのみ（設定は非表示） */
     .header-right {
-        flex: 1 1 auto;
+        flex: 0 0 auto;
         justify-content: flex-end;
-        gap: var(--spacing-xs);
+        gap: 2px; /* ボタン間は最小限に、タップ領域内で十分 */
         order: 2;
         min-width: 0;
     }
@@ -2121,29 +2133,33 @@ body[data-view="calendar"] .board-container {
         display: none;
     }
     
-    /* タスク追加ボタン - 小さいアイコンボタンに変更 */
+    /* 設定ボタンをスマホで非表示（ユーザーメニュー内にあるため） */
+    #settings-btn {
+        display: none !important;
+    }
+    
+    /* タスク追加ボタン - Apple標準の44pt × 44ptタップ領域 */
     #new-task-btn {
         order: 10;
         flex: 0 0 auto;
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px; /* タップ領域確保 */
         padding: 0;
+        margin-left: 4px; /* 右端に配置 */
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
         background: var(--color-primary) !important;
-    }
-    
-    #new-task-btn:hover {
-        box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
-        transform: scale(1.05);
+        -webkit-tap-highlight-color: transparent;
     }
     
     #new-task-btn:active {
-        box-shadow: 0 1px 2px rgba(0, 122, 255, 0.2);
-        transform: scale(0.98);
+        box-shadow: 0 1px 4px rgba(0, 122, 255, 0.3);
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
     }
     
     #new-task-btn span {
@@ -2151,19 +2167,40 @@ body[data-view="calendar"] .board-container {
     }
     
     #new-task-btn svg {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
+        stroke-width: 2.5;
     }
     
+    /* アイコンボタン - Apple標準の44pt × 44pt */
     .icon-btn {
-        width: 32px;
-        height: 32px;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px;
         flex-shrink: 0;
+        border-radius: 50%;
+        -webkit-tap-highlight-color: transparent;
     }
     
+    .notification-btn {
+        order: 1;
+    }
+    
+    /* ユーザーアバター - Apple標準の44pt × 44pt */
     .user-avatar {
-        width: 32px;
-        height: 32px;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 15px;
+        margin: 4px; /* 44px領域内で中央配置 */
+    }
+    
+    .user-menu {
+        order: 2;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     /* タブバーを下部に固定 - Apple標準UIKit TabBarに準拠 */
