@@ -1925,7 +1925,7 @@ body[data-view="calendar"] .board-container {
 .settings-user-segment .segment-btn::after {
     content: '';
     position: absolute;
-    bottom: calc(-1 * var(--spacing-md) - 1px);
+    bottom: -13px;
     left: 0;
     right: 0;
     height: 2px;
@@ -2014,12 +2014,22 @@ body[data-view="calendar"] .board-container {
     color: var(--color-text-secondary);
 }
 
+.user-item .dept-badge {
+    font-size: var(--font-size-xs);
+    padding: 4px var(--spacing-sm);
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .user-item .role-badge {
     font-size: var(--font-size-xs);
     padding: 4px var(--spacing-sm);
     background: var(--color-bg-tertiary);
     border-radius: var(--radius-full);
     color: var(--color-text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .user-item .role-badge.admin {
@@ -4332,27 +4342,29 @@ body[data-view="calendar"] .board-container {
     
     /* Settings - User list improvements for mobile (Apple-style) */
     .user-item {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         padding: var(--spacing-md);
-        gap: var(--spacing-md);
+        gap: var(--spacing-sm);
         align-items: center;
-        min-height: 64px;
+        min-height: 60px;
         border-radius: var(--radius-md);
     }
     
     .user-item .user-avatar-sm {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
         font-size: var(--font-size-base);
         flex-shrink: 0;
+        order: 1;
     }
     
     .user-item .user-info {
-        flex: 1;
-        min-width: 0;
+        flex: 1 1 calc(100% - 180px);
+        min-width: 120px;
         display: flex;
         flex-direction: column;
         gap: 2px;
+        order: 2;
     }
     
     .user-item .name {
@@ -4373,13 +4385,37 @@ body[data-view="calendar"] .board-container {
         line-height: 1.2;
     }
     
-    .user-item .role-badge {
+    .user-item .dept-badge {
         font-size: var(--font-size-xs);
-        padding: 4px 8px;
+        padding: 3px 8px;
         flex-shrink: 0;
         white-space: nowrap;
         border-radius: 4px;
-        font-weight: 600;
+        font-weight: 500;
+        order: 3;
+    }
+    
+    .user-item .role-badge {
+        font-size: var(--font-size-xs);
+        padding: 3px 8px;
+        flex-shrink: 0;
+        white-space: nowrap;
+        border-radius: 4px;
+        font-weight: 500;
+        order: 4;
+    }
+    
+    .user-item .pin-btn {
+        display: none !important;
+    }
+    
+    .user-item .item-actions {
+        order: 5;
+        margin-left: auto;
+    }
+    
+    .user-item .delete-btn-edit {
+        order: 6;
     }
     
     /* Edit mode adjustments */
@@ -4389,8 +4425,12 @@ body[data-view="calendar"] .board-container {
     }
     
     .edit-mode .user-item .user-avatar-sm {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .edit-mode .user-item .user-info {
+        flex: 1 1 calc(100% - 160px);
     }
     
     /* Department item improvements */
