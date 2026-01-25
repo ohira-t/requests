@@ -263,6 +263,7 @@ class App {
                 email,
                 password,
                 role: isClient ? 'client' : 'staff',
+                type: isClient ? 'client' : 'internal',
                 company: isClient ? name : null
             });
             await this.loadUsers();
