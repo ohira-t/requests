@@ -2646,6 +2646,14 @@ body[data-view="calendar"] .board-container {
         /* フッターを常に表示 */
         position: relative;
         z-index: 1;
+        /* モバイルではボタンを縦並びに */
+        flex-direction: column-reverse;
+        gap: var(--spacing-sm);
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
     }
     
     /* グラバーを目立たせる */
