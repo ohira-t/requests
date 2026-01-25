@@ -3954,8 +3954,8 @@ class App {
             btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner"><circle cx="12" cy="12" r="10"/></svg><span>ダウンロード中...</span>';
             btn.style.opacity = '0.7';
             
-            // Get CSV data from API
-            const response = await fetch('/api/tasks/export', {
+            // Get CSV data from API (use API base URL for subdirectory support)
+            const response = await fetch(`${this.api.baseUrl}/tasks/export`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
