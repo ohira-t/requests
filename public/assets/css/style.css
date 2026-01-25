@@ -896,13 +896,25 @@ body[data-view="calendar"] .sort-bar {
     display: none;
 }
 
-/* Allow scrolling for calendar view */
+/* Calendar view - 通常のHTMLスクロール */
+body[data-view="calendar"] {
+    overflow: auto;
+    height: auto;
+    position: static;
+}
+
+body[data-view="calendar"] #app {
+    height: auto;
+    overflow: visible;
+}
+
 body[data-view="calendar"] .app-main {
-    overflow-y: auto;
+    height: auto;
+    overflow: visible;
 }
 
 body[data-view="calendar"] .board-container {
-    overflow-y: visible;
+    overflow: visible;
     height: auto;
 }
 
@@ -919,11 +931,10 @@ body[data-view="calendar"] .board-container {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Calendar view needs vertical scroll */
+/* Calendar view - 高さ制限なし */
 .board-container:has(.calendar-view) {
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 100%;
+    overflow: visible;
+    height: auto;
 }
 
 .board-column {
@@ -2598,10 +2609,20 @@ body[data-view="calendar"] .board-container {
         scroll-snap-stop: always;
     }
     
-    /* カレンダービュー時の調整 */
+    /* カレンダービュー時 - 通常スクロール */
+    body[data-view="calendar"] {
+        position: static;
+        overflow: auto;
+    }
+    
+    body[data-view="calendar"] #app {
+        height: auto;
+        overflow: visible;
+    }
+    
     body[data-view="calendar"] .app-main {
         height: auto;
-        min-height: calc(100vh - var(--mobile-header-height) - 49px - env(safe-area-inset-bottom));
+        overflow: visible;
     }
     
     /* Modal - Apple Sheet Style（改善版） */
@@ -3904,9 +3925,7 @@ body[data-view="calendar"] .board-container {
 }
 
 .calendar-day {
-    height: 120px;
-    min-height: 120px;
-    max-height: 120px;
+    min-height: 100px;
     padding: var(--spacing-sm);
     border-right: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
@@ -3915,7 +3934,6 @@ body[data-view="calendar"] .board-container {
     display: flex;
     flex-direction: column;
     background: var(--color-bg-secondary);
-    overflow: hidden;
 }
 
 .calendar-day:nth-child(7n) {
