@@ -431,13 +431,13 @@ class App {
         // Bind click events
         list.querySelectorAll('.sheet-list-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (e.target.closest('.pin-btn')) return;
+                if (e.target.closest('.pin-btn-inline')) return;
                 this.selectAssignee(item.dataset.value);
             });
         });
 
         // Bind pin button events
-        list.querySelectorAll('.pin-btn').forEach(btn => {
+        list.querySelectorAll('.pin-btn-inline').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.togglePinUser(btn.dataset.userId);
@@ -453,14 +453,21 @@ class App {
 
         return `
             <button type="button" class="sheet-list-item ${isSelected ? 'selected' : ''}" data-value="${user.id}">
-                <span class="sheet-list-item-avatar ${isClient ? 'client' : 'staff'}">${escapeHtml(initials)}</span>
+                <div class="sheet-list-item-avatar-wrap">
+                    <span class="sheet-list-item-avatar ${isClient ? 'client' : 'staff'}">${escapeHtml(initials)}</span>
+                    ${isPinned ? `<span class="pin-badge" title="ピン留め中">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </span>` : ''}
+                </div>
                 <div class="sheet-list-item-info">
                     <div class="sheet-list-item-name">${escapeHtml(displayName)}</div>
                     <div class="sheet-list-item-email">${escapeHtml(user.email)}</div>
                 </div>
-                <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" data-user-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                <button type="button" class="pin-btn-inline ${isPinned ? 'pinned' : ''}" data-user-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
                 </button>
                 <svg class="sheet-list-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">

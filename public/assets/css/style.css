@@ -3062,6 +3062,11 @@ body[data-view="calendar"] .board-container {
     background: var(--theme-color-light);
 }
 
+.sheet-list-item-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
 .sheet-list-item-avatar {
     width: 44px;
     height: 44px;
@@ -3072,7 +3077,21 @@ body[data-view="calendar"] .board-container {
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: white;
-    flex-shrink: 0;
+}
+
+.pin-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    background: #FFD60A;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .sheet-list-item-avatar.staff {
@@ -3138,6 +3157,38 @@ body[data-view="calendar"] .board-container {
     margin-top: var(--spacing-xs);
 }
 
+/* Inline pin button (in assignee list) */
+.pin-btn-inline {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    margin-right: var(--spacing-xs);
+}
+
+.pin-btn-inline:hover {
+    background: rgba(255, 214, 10, 0.1);
+    color: #FFD60A;
+}
+
+.pin-btn-inline.pinned {
+    color: #FFD60A;
+}
+
+.pin-btn-inline.pinned:hover {
+    color: #FFD60A;
+    background: rgba(255, 214, 10, 0.15);
+}
+
+/* Settings pin button (kept for settings panel) */
 .pin-btn {
     width: 32px;
     height: 32px;
