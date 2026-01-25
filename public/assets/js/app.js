@@ -3380,93 +3380,103 @@ class App {
         if (!stats) return;
         
         // タイトルをロールごとに変更
-        let statsTitle = '統計ダッシュボード';
+        let statsTitle = '統計';
         if (this.user) {
             if (this.user.role === 'admin') {
-                statsTitle = '統計ダッシュボード（全体）';
-            } else if (this.user.role === 'client') {
-                statsTitle = 'マイタスク統計';
+                statsTitle = '統計（全体）';
             } else {
                 statsTitle = 'マイタスク統計';
             }
         }
 
-        const statusData = [
-            { label: 'バックログ', value: parseInt(stats.backlog) || 0, color: '#8E8E93' },
-            { label: 'ToDo', value: parseInt(stats.todo) || 0, color: '#007AFF' },
-            { label: '進行中', value: parseInt(stats.in_progress) || 0, color: '#FF9500' },
-            { label: '完了', value: parseInt(stats.completed) || 0, color: '#34C759' },
-            { label: 'キャンセル', value: parseInt(stats.cancelled) || 0, color: '#FF3B30' }
-        ];
-
         const priorityData = [
-            { label: '緊急', value: parseInt(stats.urgent) || 0, color: '#FF3B30' },
-            { label: '高', value: parseInt(stats.high) || 0, color: '#FF9500' },
+            { label: '低', value: parseInt(stats.low) || 0, color: '#8E8E93' },
             { label: '中', value: parseInt(stats.medium) || 0, color: '#007AFF' },
-            { label: '低', value: parseInt(stats.low) || 0, color: '#8E8E93' }
+            { label: '高', value: parseInt(stats.high) || 0, color: '#FF9500' },
+            { label: '緊急', value: parseInt(stats.urgent) || 0, color: '#FF3B30' }
         ];
+        
+        const activeTasks = (stats.total || 0) - (stats.completed || 0);
+        const completionRate = stats.completion_rate || 0;
 
         container.innerHTML = `
-            <div class="stats-view">
-                <div class="stats-header">
-                    <h2 class="stats-title">${escapeHtml(statsTitle)}</h2>
+            <div class="stats-view-apple">
+                <div class="stats-header-apple">
+                    <h2 class="stats-title-apple">${escapeHtml(statsTitle)}</h2>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">総タスク数</div>
-                        <div class="stat-value">${stats.total || 0}</div>
+                <!-- Main Stats Cards -->
+                <div class="stats-main-cards">
+                    <div class="stat-card-large">
+                        <div class="stat-card-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-card-value">${stats.total || 0}</div>
+                            <div class="stat-card-label">総タスク</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">完了タスク</div>
-                        <div class="stat-value" style="color: #34C759;">${stats.completed || 0}</div>
+
+                    <div class="stat-card-large success">
+                        <div class="stat-card-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-card-value">${stats.completed || 0}</div>
+                            <div class="stat-card-label">完了</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">進行中</div>
-                        <div class="stat-value" style="color: #FF9500;">${stats.in_progress || 0}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">期限超過</div>
-                        <div class="stat-value" style="color: #FF3B30;">${stats.overdue || 0}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">完了率</div>
-                        <div class="stat-value">${stats.completion_rate || 0}%</div>
-                        <div class="stat-progress">
-                            <div class="stat-progress-bar" style="width: ${stats.completion_rate || 0}%;"></div>
+
+                    <div class="stat-card-large warning">
+                        <div class="stat-card-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <div class="stat-card-content">
+                            <div class="stat-card-value">${stats.overdue || 0}</div>
+                            <div class="stat-card-label">期限超過</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="stats-charts">
-                    <div class="chart-card">
-                        <h3 class="chart-title">ステータス別</h3>
-                        <div class="chart-bars">
-                            ${statusData.map(item => `
-                                <div class="chart-bar-item">
-                                    <div class="chart-bar-label">${item.label}</div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="width: ${stats.total > 0 ? (item.value / stats.total * 100) : 0}%; background: ${item.color};"></div>
-                                    </div>
-                                    <div class="chart-bar-value">${item.value}</div>
-                                </div>
-                            `).join('')}
-                        </div>
+                <!-- Completion Rate Card -->
+                <div class="stats-completion-card">
+                    <div class="completion-card-header">
+                        <div class="completion-label">完了率</div>
+                        <div class="completion-value">${completionRate}%</div>
                     </div>
+                    <div class="completion-progress">
+                        <div class="completion-progress-bar" style="width: ${completionRate}%;"></div>
+                    </div>
+                    <div class="completion-detail">
+                        <span>${stats.completed || 0}件完了</span>
+                        <span>${activeTasks}件進行中</span>
+                    </div>
+                </div>
 
-                    <div class="chart-card">
-                        <h3 class="chart-title">優先度別</h3>
-                        <div class="chart-bars">
-                            ${priorityData.map(item => `
-                                <div class="chart-bar-item">
-                                    <div class="chart-bar-label">${item.label}</div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="width: ${stats.total > 0 ? (item.value / stats.total * 100) : 0}%; background: ${item.color};"></div>
-                                    </div>
-                                    <div class="chart-bar-value">${item.value}</div>
+                <!-- Priority Breakdown -->
+                <div class="stats-priority-card">
+                    <h3 class="priority-card-title">優先度別</h3>
+                    <div class="priority-grid">
+                        ${priorityData.map(item => `
+                            <div class="priority-item">
+                                <div class="priority-dot" style="background: ${item.color};"></div>
+                                <div class="priority-info">
+                                    <div class="priority-label">${item.label}</div>
+                                    <div class="priority-value">${item.value}件</div>
                                 </div>
-                            `).join('')}
-                        </div>
+                                <div class="priority-bar-bg">
+                                    <div class="priority-bar" style="width: ${stats.total > 0 ? (item.value / stats.total * 100) : 0}%; background: ${item.color};"></div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
 
