@@ -3379,109 +3379,55 @@ class App {
 
         if (!stats) return;
         
-        // タイトルをロールごとに変更
-        let statsTitle = '統計';
-        if (this.user) {
-            if (this.user.role === 'admin') {
-                statsTitle = '統計（全体）';
-            } else {
-                statsTitle = 'マイタスク統計';
-            }
-        }
-
-        const priorityData = [
-            { label: '低', value: parseInt(stats.low) || 0, color: '#8E8E93' },
-            { label: '中', value: parseInt(stats.medium) || 0, color: '#007AFF' },
-            { label: '高', value: parseInt(stats.high) || 0, color: '#FF9500' },
-            { label: '緊急', value: parseInt(stats.urgent) || 0, color: '#FF3B30' }
-        ];
-        
-        const activeTasks = (stats.total || 0) - (stats.completed || 0);
         const completionRate = stats.completion_rate || 0;
+        const activeTasks = (stats.total || 0) - (stats.completed || 0);
+        
+        // 円グラフのSVGパス計算
+        const radius = 90;
+        const circumference = 2 * Math.PI * radius;
+        const strokeDashoffset = circumference - (completionRate / 100) * circumference;
 
         container.innerHTML = `
-            <div class="stats-view-apple">
-                <div class="stats-header-apple">
-                    <h2 class="stats-title-apple">${escapeHtml(statsTitle)}</h2>
+            <div class="stats-minimal">
+                <!-- Hero: 完了率リング -->
+                <div class="stats-hero">
+                    <div class="stats-ring-container">
+                        <svg class="stats-ring" viewBox="0 0 200 200">
+                            <circle class="stats-ring-bg" cx="100" cy="100" r="${radius}" />
+                            <circle class="stats-ring-progress" cx="100" cy="100" r="${radius}" 
+                                stroke-dasharray="${circumference}" 
+                                stroke-dashoffset="${strokeDashoffset}" />
+                        </svg>
+                        <div class="stats-ring-content">
+                            <span class="stats-ring-value">${completionRate}</span>
+                            <span class="stats-ring-unit">%</span>
+                        </div>
+                    </div>
+                    <div class="stats-ring-label">完了率</div>
                 </div>
 
-                <!-- Main Stats Cards -->
-                <div class="stats-main-cards">
-                    <div class="stat-card-large">
-                        <div class="stat-card-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 11l3 3L22 4"/>
-                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                            </svg>
-                        </div>
-                        <div class="stat-card-content">
-                            <div class="stat-card-value">${stats.total || 0}</div>
-                            <div class="stat-card-label">総タスク</div>
-                        </div>
+                <!-- 数字グリッド -->
+                <div class="stats-numbers">
+                    <div class="stats-number-item">
+                        <span class="stats-num">${stats.total || 0}</span>
+                        <span class="stats-label">全タスク</span>
                     </div>
-
-                    <div class="stat-card-large success">
-                        <div class="stat-card-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                        </div>
-                        <div class="stat-card-content">
-                            <div class="stat-card-value">${stats.completed || 0}</div>
-                            <div class="stat-card-label">完了</div>
-                        </div>
+                    <div class="stats-number-item">
+                        <span class="stats-num accent">${stats.completed || 0}</span>
+                        <span class="stats-label">完了</span>
                     </div>
-
-                    <div class="stat-card-large warning">
-                        <div class="stat-card-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12 6 12 12 16 14"/>
-                            </svg>
-                        </div>
-                        <div class="stat-card-content">
-                            <div class="stat-card-value">${stats.overdue || 0}</div>
-                            <div class="stat-card-label">期限超過</div>
-                        </div>
+                    <div class="stats-number-item">
+                        <span class="stats-num">${activeTasks}</span>
+                        <span class="stats-label">進行中</span>
                     </div>
-                </div>
-
-                <!-- Completion Rate Card -->
-                <div class="stats-completion-card">
-                    <div class="completion-card-header">
-                        <div class="completion-label">完了率</div>
-                        <div class="completion-value">${completionRate}%</div>
-                    </div>
-                    <div class="completion-progress">
-                        <div class="completion-progress-bar" style="width: ${completionRate}%;"></div>
-                    </div>
-                    <div class="completion-detail">
-                        <span>${stats.completed || 0}件完了</span>
-                        <span>${activeTasks}件進行中</span>
-                    </div>
-                </div>
-
-                <!-- Priority Breakdown -->
-                <div class="stats-priority-card">
-                    <h3 class="priority-card-title">優先度別</h3>
-                    <div class="priority-grid">
-                        ${priorityData.map(item => `
-                            <div class="priority-item">
-                                <div class="priority-dot" style="background: ${item.color};"></div>
-                                <div class="priority-info">
-                                    <div class="priority-label">${item.label}</div>
-                                    <div class="priority-value">${item.value}件</div>
-                                </div>
-                                <div class="priority-bar-bg">
-                                    <div class="priority-bar" style="width: ${stats.total > 0 ? (item.value / stats.total * 100) : 0}%; background: ${item.color};"></div>
-                                </div>
-                            </div>
-                        `).join('')}
+                    <div class="stats-number-item ${stats.overdue > 0 ? 'has-warning' : ''}">
+                        <span class="stats-num ${stats.overdue > 0 ? 'warning' : ''}">${stats.overdue || 0}</span>
+                        <span class="stats-label">期限超過</span>
                     </div>
                 </div>
 
                 ${stats.recent_tasks && stats.recent_tasks.length > 0 ? `
-                    <div class="stats-recent">
+                    <div class="stats-recent-minimal">
                         <h3 class="stats-section-title">最近のタスク</h3>
                         <div class="stats-task-list">
                             ${stats.recent_tasks.map(task => {
