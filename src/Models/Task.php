@@ -712,6 +712,81 @@ class Task
         return $stats;
     }
     
+    /**
+     * ダッシュボード用の詳細統計を取得
+     * - 自分の課題（自分に割り当てられた課題）
+     * - 依頼した課題（スタッフに依頼）
+     * - クライアント課題（クライアントに依頼）
+     */
+    public static function getDashboardStats(int $userId): array
+    {
+        $today = Database::getDriver() === 'sqlite' ? "date('now')" : "CURDATE()";
+        
+        // 1. 自分の課題（assignee_id = userId）
+        $myTasks = Database::fetch(
+            "SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN due_date < {$today} AND status != 'done' AND status != 'cancelled' THEN 1 ELSE 0 END) as overdue,
+                SUM(CASE WHEN status != 'done' AND status != 'cancelled' THEN 1 ELSE 0 END) as active
+            FROM tasks
+            WHERE assignee_id = ? AND deleted_at IS NULL",
+            [$userId]
+        );
+        
+        // 2. スタッフに依頼した課題（creator_id = userId AND assignee is staff）
+        $requestedTasks = Database::fetch(
+            "SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN t.due_date < {$today} AND t.status != 'done' AND t.status != 'cancelled' THEN 1 ELSE 0 END) as overdue,
+                SUM(CASE WHEN t.status != 'done' AND t.status != 'cancelled' THEN 1 ELSE 0 END) as active
+            FROM tasks t
+            LEFT JOIN users u ON t.assignee_id = u.id
+            WHERE t.creator_id = ? 
+              AND t.assignee_id != ?
+              AND (u.type = 'internal' OR u.role = 'staff' OR u.role = 'admin')
+              AND t.deleted_at IS NULL",
+            [$userId, $userId]
+        );
+        
+        // 3. クライアントに依頼した課題（creator_id = userId AND assignee is client）
+        $clientTasks = Database::fetch(
+            "SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN t.due_date < {$today} AND t.status != 'done' AND t.status != 'cancelled' THEN 1 ELSE 0 END) as overdue,
+                SUM(CASE WHEN t.status != 'done' AND t.status != 'cancelled' THEN 1 ELSE 0 END) as active
+            FROM tasks t
+            LEFT JOIN users u ON t.assignee_id = u.id
+            WHERE t.creator_id = ?
+              AND u.type = 'client'
+              AND t.deleted_at IS NULL",
+            [$userId]
+        );
+        
+        return [
+            'my_tasks' => [
+                'total' => (int)($myTasks['total'] ?? 0),
+                'completed' => (int)($myTasks['completed'] ?? 0),
+                'overdue' => (int)($myTasks['overdue'] ?? 0),
+                'active' => (int)($myTasks['active'] ?? 0),
+            ],
+            'requested_tasks' => [
+                'total' => (int)($requestedTasks['total'] ?? 0),
+                'completed' => (int)($requestedTasks['completed'] ?? 0),
+                'overdue' => (int)($requestedTasks['overdue'] ?? 0),
+                'active' => (int)($requestedTasks['active'] ?? 0),
+            ],
+            'client_tasks' => [
+                'total' => (int)($clientTasks['total'] ?? 0),
+                'completed' => (int)($clientTasks['completed'] ?? 0),
+                'overdue' => (int)($clientTasks['overdue'] ?? 0),
+                'active' => (int)($clientTasks['active'] ?? 0),
+            ],
+        ];
+    }
+    
     public static function getAllForExport(array $filters = []): array
     {
         $sql = "SELECT t.*, 

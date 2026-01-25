@@ -3352,198 +3352,201 @@ body[data-view="calendar"] .board-container {
 }
 
 /* ============================================
-   Stats View - Minimal (Apple-inspired)
+   Dashboard View
    ============================================ */
-.stats-minimal {
-    max-width: 600px;
+.dashboard {
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 48px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 48px;
+    padding: 32px 24px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-/* Hero: 完了率リング */
-.stats-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-}
-
-.stats-ring-container {
-    position: relative;
-    width: 200px;
-    height: 200px;
-}
-
-.stats-ring {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-}
-
-.stats-ring-bg {
-    fill: none;
-    stroke: #F2F2F7;
-    stroke-width: 12;
-}
-
-.stats-ring-progress {
-    fill: none;
-    stroke: #34C759;
-    stroke-width: 12;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stats-ring-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: baseline;
-    gap: 2px;
-}
-
-.stats-ring-value {
-    font-size: 56px;
-    font-weight: 600;
-    color: #1D1D1F;
-    letter-spacing: -0.02em;
-    line-height: 1;
-}
-
-.stats-ring-unit {
-    font-size: 24px;
-    font-weight: 500;
-    color: #86868B;
-}
-
-.stats-ring-label {
-    font-size: 17px;
-    font-weight: 400;
-    color: #86868B;
-    letter-spacing: -0.01em;
-}
-
-/* 数字グリッド */
-.stats-numbers {
+.dashboard-cards {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: #E5E5EA;
-    border-radius: 12px;
-    overflow: hidden;
-    width: 100%;
-    max-width: 480px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
 }
 
-.stats-number-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px 8px;
+.dashboard-card {
     background: #fff;
-    gap: 4px;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
 }
 
-.stats-num {
-    font-size: 28px;
-    font-weight: 600;
-    color: #1D1D1F;
-    letter-spacing: -0.02em;
-    line-height: 1;
+.dashboard-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
-.stats-num.accent {
-    color: #34C759;
-}
-
-.stats-num.warning {
-    color: #FF3B30;
-}
-
-.stats-label {
-    font-size: 13px;
-    font-weight: 400;
-    color: #86868B;
-    letter-spacing: -0.01em;
-}
-
-/* 最近のタスク（ミニマル版） */
-.stats-recent-minimal {
-    width: 100%;
-    max-width: 480px;
-}
-
-.stats-recent-minimal .stats-section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #86868B;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin: 0 0 12px 0;
-}
-
-.stats-recent-minimal .stats-task-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.04);
-}
-
-.stats-recent-minimal .stats-task-item {
+.card-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 16px;
-    border-bottom: 0.5px solid #E5E5EA;
+    margin-bottom: 20px;
+}
+
+.card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-icon.blue {
+    background: rgba(0, 122, 255, 0.1);
+    color: #007AFF;
+}
+
+.card-icon.green {
+    background: rgba(52, 199, 89, 0.1);
+    color: #34C759;
+}
+
+.card-icon.orange {
+    background: rgba(255, 149, 0, 0.1);
+    color: #FF9500;
+}
+
+.card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1D1D1F;
+    letter-spacing: -0.01em;
+}
+
+.card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.card-stat {
+    text-align: center;
+}
+
+.card-stat .stat-value {
+    font-size: 32px;
+    font-weight: 600;
+    color: #1D1D1F;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.card-stat .stat-label {
+    font-size: 12px;
+    color: #86868B;
+    margin-top: 4px;
+}
+
+.card-stat.main .stat-value {
+    color: #007AFF;
+}
+
+.card-stat.warning .stat-value {
+    color: #FF3B30;
+}
+
+.card-progress {
+    height: 6px;
+    background: #F2F2F7;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.card-progress .progress-bar {
+    height: 100%;
+    background: #007AFF;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.card-progress.green .progress-bar {
+    background: #34C759;
+}
+
+.card-progress.orange .progress-bar {
+    background: #FF9500;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #86868B;
+}
+
+.completion-rate {
+    font-weight: 500;
+}
+
+/* 最近のタスク */
+.dashboard-recent {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.dashboard-recent .stats-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1D1D1F;
+    margin: 0 0 16px 0;
+}
+
+.dashboard-recent .stats-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.dashboard-recent .stats-task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F2F2F7;
+    cursor: pointer;
     transition: background 0.15s ease;
 }
 
-.stats-recent-minimal .stats-task-item:last-child {
+.dashboard-recent .stats-task-item:last-child {
     border-bottom: none;
 }
 
-.stats-recent-minimal .stats-task-item:active {
-    background: #F2F2F7;
+.dashboard-recent .stats-task-item:hover {
+    background: #F9F9FB;
+    margin: 0 -12px;
+    padding: 12px 12px;
+    border-radius: 8px;
 }
 
 /* Mobile */
-@media (max-width: 480px) {
-    .stats-minimal {
-        padding: 32px 16px;
-        gap: 32px;
+@media (max-width: 768px) {
+    .dashboard {
+        padding: 20px 16px;
     }
     
-    .stats-ring-container {
-        width: 160px;
-        height: 160px;
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
     
-    .stats-ring-value {
-        font-size: 44px;
+    .dashboard-card {
+        padding: 20px;
     }
     
-    .stats-ring-unit {
-        font-size: 20px;
-    }
-    
-    .stats-numbers {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .stats-num {
-        font-size: 24px;
+    .card-stat .stat-value {
+        font-size: 28px;
     }
 }
 

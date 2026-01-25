@@ -441,6 +441,11 @@ class TaskController
         
         $stats = Task::getStats($filters);
         
+        // ダッシュボード用の詳細統計を追加（管理者とスタッフのみ）
+        if ($user['role'] !== 'client') {
+            $stats['dashboard'] = Task::getDashboardStats($user['id']);
+        }
+        
         Response::success($stats);
     }
     

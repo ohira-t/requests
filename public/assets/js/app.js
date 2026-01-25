@@ -3379,55 +3379,127 @@ class App {
 
         if (!stats) return;
         
-        const completionRate = stats.completion_rate || 0;
-        const activeTasks = (stats.total || 0) - (stats.completed || 0);
+        const dashboard = stats.dashboard || {
+            my_tasks: { total: 0, completed: 0, overdue: 0, active: 0 },
+            requested_tasks: { total: 0, completed: 0, overdue: 0, active: 0 },
+            client_tasks: { total: 0, completed: 0, overdue: 0, active: 0 }
+        };
         
-        // 円グラフのSVGパス計算
-        const radius = 90;
-        const circumference = 2 * Math.PI * radius;
-        const strokeDashoffset = circumference - (completionRate / 100) * circumference;
+        // 完了率を計算
+        const calcRate = (d) => d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0;
 
         container.innerHTML = `
-            <div class="stats-minimal">
-                <!-- Hero: 完了率リング -->
-                <div class="stats-hero">
-                    <div class="stats-ring-container">
-                        <svg class="stats-ring" viewBox="0 0 200 200">
-                            <circle class="stats-ring-bg" cx="100" cy="100" r="${radius}" />
-                            <circle class="stats-ring-progress" cx="100" cy="100" r="${radius}" 
-                                stroke-dasharray="${circumference}" 
-                                stroke-dashoffset="${strokeDashoffset}" />
-                        </svg>
-                        <div class="stats-ring-content">
-                            <span class="stats-ring-value">${completionRate}</span>
-                            <span class="stats-ring-unit">%</span>
+            <div class="dashboard">
+                <div class="dashboard-cards">
+                    <!-- 自分の課題 -->
+                    <div class="dashboard-card" data-view="my-tasks">
+                        <div class="card-header">
+                            <div class="card-icon blue">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                            <span class="card-title">自分の課題</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat main">
+                                <span class="stat-value">${dashboard.my_tasks.active}</span>
+                                <span class="stat-label">進行中</span>
+                            </div>
+                            <div class="card-stat">
+                                <span class="stat-value">${dashboard.my_tasks.completed}</span>
+                                <span class="stat-label">完了</span>
+                            </div>
+                            <div class="card-stat ${dashboard.my_tasks.overdue > 0 ? 'warning' : ''}">
+                                <span class="stat-value">${dashboard.my_tasks.overdue}</span>
+                                <span class="stat-label">期限超過</span>
+                            </div>
+                        </div>
+                        <div class="card-progress">
+                            <div class="progress-bar" style="width: ${calcRate(dashboard.my_tasks)}%"></div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="total-count">全${dashboard.my_tasks.total}件</span>
+                            <span class="completion-rate">${calcRate(dashboard.my_tasks)}%完了</span>
                         </div>
                     </div>
-                    <div class="stats-ring-label">完了率</div>
-                </div>
 
-                <!-- 数字グリッド -->
-                <div class="stats-numbers">
-                    <div class="stats-number-item">
-                        <span class="stats-num">${stats.total || 0}</span>
-                        <span class="stats-label">全タスク</span>
+                    <!-- 依頼した課題（スタッフ向け） -->
+                    <div class="dashboard-card" data-view="requested">
+                        <div class="card-header">
+                            <div class="card-icon green">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="8.5" cy="7" r="4"/>
+                                    <path d="M20 8v6"/>
+                                    <path d="M23 11h-6"/>
+                                </svg>
+                            </div>
+                            <span class="card-title">依頼した課題</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat main">
+                                <span class="stat-value">${dashboard.requested_tasks.active}</span>
+                                <span class="stat-label">進行中</span>
+                            </div>
+                            <div class="card-stat">
+                                <span class="stat-value">${dashboard.requested_tasks.completed}</span>
+                                <span class="stat-label">完了</span>
+                            </div>
+                            <div class="card-stat ${dashboard.requested_tasks.overdue > 0 ? 'warning' : ''}">
+                                <span class="stat-value">${dashboard.requested_tasks.overdue}</span>
+                                <span class="stat-label">期限超過</span>
+                            </div>
+                        </div>
+                        <div class="card-progress green">
+                            <div class="progress-bar" style="width: ${calcRate(dashboard.requested_tasks)}%"></div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="total-count">全${dashboard.requested_tasks.total}件</span>
+                            <span class="completion-rate">${calcRate(dashboard.requested_tasks)}%完了</span>
+                        </div>
                     </div>
-                    <div class="stats-number-item">
-                        <span class="stats-num accent">${stats.completed || 0}</span>
-                        <span class="stats-label">完了</span>
-                    </div>
-                    <div class="stats-number-item">
-                        <span class="stats-num">${activeTasks}</span>
-                        <span class="stats-label">進行中</span>
-                    </div>
-                    <div class="stats-number-item ${stats.overdue > 0 ? 'has-warning' : ''}">
-                        <span class="stats-num ${stats.overdue > 0 ? 'warning' : ''}">${stats.overdue || 0}</span>
-                        <span class="stats-label">期限超過</span>
+
+                    <!-- クライアント課題 -->
+                    <div class="dashboard-card" data-view="client">
+                        <div class="card-header">
+                            <div class="card-icon orange">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <span class="card-title">クライアント課題</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="card-stat main">
+                                <span class="stat-value">${dashboard.client_tasks.active}</span>
+                                <span class="stat-label">進行中</span>
+                            </div>
+                            <div class="card-stat">
+                                <span class="stat-value">${dashboard.client_tasks.completed}</span>
+                                <span class="stat-label">完了</span>
+                            </div>
+                            <div class="card-stat ${dashboard.client_tasks.overdue > 0 ? 'warning' : ''}">
+                                <span class="stat-value">${dashboard.client_tasks.overdue}</span>
+                                <span class="stat-label">期限超過</span>
+                            </div>
+                        </div>
+                        <div class="card-progress orange">
+                            <div class="progress-bar" style="width: ${calcRate(dashboard.client_tasks)}%"></div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="total-count">全${dashboard.client_tasks.total}件</span>
+                            <span class="completion-rate">${calcRate(dashboard.client_tasks)}%完了</span>
+                        </div>
                     </div>
                 </div>
 
                 ${stats.recent_tasks && stats.recent_tasks.length > 0 ? `
-                    <div class="stats-recent-minimal">
+                    <div class="dashboard-recent">
                         <h3 class="stats-section-title">最近のタスク</h3>
                         <div class="stats-task-list">
                             ${stats.recent_tasks.map(task => {
@@ -3456,6 +3528,20 @@ class App {
             </div>
         `;
 
+        // Bind click events for dashboard cards
+        container.querySelectorAll('.dashboard-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const view = card.dataset.view;
+                if (view === 'my-tasks') {
+                    this.switchView('my-tasks');
+                } else if (view === 'requested') {
+                    this.switchView('requested');
+                } else if (view === 'client') {
+                    this.switchView('client');
+                }
+            });
+        });
+        
         // Bind click events for recent tasks
         container.querySelectorAll('.stats-task-item').forEach(item => {
             item.addEventListener('click', () => {
