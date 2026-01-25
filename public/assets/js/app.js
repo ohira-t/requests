@@ -14,6 +14,7 @@ class App {
         this.notifications = [];
         this.unreadCount = 0;
         this.departments = [];
+        this.sortOrder = 'due'; // 'due', 'priority', 'created', 'manual'
 
         this.init();
     }
@@ -89,6 +90,15 @@ class App {
         // View tabs
         document.querySelectorAll('.view-tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchView(tab.dataset.view));
+        });
+        
+        // Sort controls
+        document.getElementById('sort-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSortMenu();
+        });
+        document.querySelectorAll('.sort-option').forEach(option => {
+            option.addEventListener('click', () => this.changeSortOrder(option.dataset.sort));
         });
         
         // Logo click - return to home
@@ -1471,21 +1481,126 @@ class App {
         `;
     }
 
-    // Sort tasks by due date (closest first), then by sort_order
-    sortTasksByDueDate(tasks) {
-        return [...tasks].sort((a, b) => {
-            // First, sort by manual sort_order if exists
-            if (a.sort_order !== null && b.sort_order !== null) {
-                return a.sort_order - b.sort_order;
-            }
-
-            // Then by due date (null/no due date goes to bottom)
-            if (!a.due_date && !b.due_date) return 0;
-            if (!a.due_date) return 1;
-            if (!b.due_date) return -1;
-
-            return new Date(a.due_date) - new Date(b.due_date);
+    // Sort menu controls
+    toggleSortMenu() {
+        const sortBar = document.getElementById('sort-bar');
+        sortBar?.classList.toggle('open');
+        
+        // Close when clicking outside
+        if (sortBar?.classList.contains('open')) {
+            const closeHandler = (e) => {
+                if (!sortBar.contains(e.target)) {
+                    sortBar.classList.remove('open');
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', closeHandler), 0);
+        }
+    }
+    
+    changeSortOrder(sortOrder) {
+        this.sortOrder = sortOrder;
+        
+        // Update UI
+        const sortLabel = document.getElementById('sort-label');
+        const sortLabels = {
+            'due': '期限順',
+            'priority': '優先度順',
+            'created': '作成日順',
+            'manual': '手動'
+        };
+        if (sortLabel) sortLabel.textContent = sortLabels[sortOrder] || '期限順';
+        
+        // Update active state
+        document.querySelectorAll('.sort-option').forEach(option => {
+            option.classList.toggle('active', option.dataset.sort === sortOrder);
         });
+        
+        // Close menu
+        document.getElementById('sort-bar')?.classList.remove('open');
+        
+        // Re-render board
+        this.renderBoard();
+    }
+    
+    // Sort tasks based on current sort order
+    sortTasks(tasks) {
+        return [...tasks].sort((a, b) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Manual sort - use sort_order
+            if (this.sortOrder === 'manual') {
+                if (a.sort_order !== null && b.sort_order !== null) {
+                    return a.sort_order - b.sort_order;
+                }
+                return 0;
+            }
+            
+            // Created date sort
+            if (this.sortOrder === 'created') {
+                const dateA = new Date(a.created_at || 0);
+                const dateB = new Date(b.created_at || 0);
+                return dateB - dateA; // Newest first
+            }
+            
+            // Priority sort
+            if (this.sortOrder === 'priority') {
+                const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+                const priorityDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (priorityDiff !== 0) return priorityDiff;
+                
+                // Same priority - sort by due date
+                if (!a.due_date && !b.due_date) return 0;
+                if (!a.due_date) return 1;
+                if (!b.due_date) return -1;
+                return new Date(a.due_date) - new Date(b.due_date);
+            }
+            
+            // Due date sort (default) - Smart sorting
+            // 1. Overdue (oldest first)
+            // 2. Today
+            // 3. Tomorrow
+            // 4. Urgent priority within a week
+            // 5. High priority within a week
+            // 6. Rest by due date
+            const getDueScore = (task) => {
+                if (!task.due_date) return 1000; // No due date goes to bottom
+                
+                const dueDate = new Date(task.due_date);
+                dueDate.setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 0) return -100 + diffDays; // Overdue: most overdue first
+                if (diffDays === 0) return 0; // Today
+                if (diffDays === 1) return 1; // Tomorrow
+                
+                // Within a week with high priority
+                if (diffDays <= 7) {
+                    if (task.priority === 'urgent') return 2;
+                    if (task.priority === 'high') return 3;
+                }
+                
+                return 10 + diffDays; // Rest by due date
+            };
+            
+            const scoreA = getDueScore(a);
+            const scoreB = getDueScore(b);
+            
+            if (scoreA !== scoreB) return scoreA - scoreB;
+            
+            // Same score - sort by due date
+            if (a.due_date && b.due_date) {
+                return new Date(a.due_date) - new Date(b.due_date);
+            }
+            
+            return 0;
+        });
+    }
+    
+    // Legacy method for backward compatibility
+    sortTasksByDueDate(tasks) {
+        return this.sortTasks(tasks);
     }
 
     formatDueDate(dueDate) {

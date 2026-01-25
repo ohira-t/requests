@@ -785,6 +785,115 @@ a.dropdown-item {
 .app-main {
     height: calc(100vh - var(--header-height));
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sort Bar (Apple-style) */
+.sort-bar {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.sort-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.sort-btn:hover {
+    color: var(--color-text-primary);
+    background: var(--color-bg-secondary);
+}
+
+.sort-btn svg:first-child {
+    color: var(--color-text-tertiary);
+}
+
+.sort-chevron {
+    transition: transform var(--transition-fast);
+}
+
+.sort-bar.open .sort-chevron {
+    transform: rotate(180deg);
+}
+
+.sort-menu {
+    position: absolute;
+    top: 100%;
+    left: var(--spacing-xl);
+    min-width: 160px;
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 0 1px rgba(0, 0, 0, 0.1);
+    padding: var(--spacing-xs);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--transition-fast);
+    z-index: 100;
+}
+
+.sort-bar.open .sort-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.sort-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    text-align: left;
+}
+
+.sort-option:hover {
+    background: var(--color-bg-secondary);
+}
+
+.sort-option svg {
+    color: transparent;
+    flex-shrink: 0;
+}
+
+.sort-option.active svg {
+    color: var(--color-primary);
+}
+
+.sort-option.active {
+    color: var(--color-primary);
+}
+
+/* Hide sort bar for stats and calendar views */
+body[data-view="stats"] .sort-bar,
+body[data-view="calendar"] .sort-bar {
+    display: none;
 }
 
 /* Allow scrolling for calendar view */
@@ -801,7 +910,7 @@ body[data-view="calendar"] .board-container {
     display: flex;
     gap: var(--column-gap);
     padding: var(--spacing-xl);
-    height: 100%;
+    flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
     /* スナップスクロールを有効化（スマホ時に特に効果的） */
