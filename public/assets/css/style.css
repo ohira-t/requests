@@ -896,6 +896,28 @@ body[data-view="calendar"] .sort-bar {
     display: none;
 }
 
+/* Stats view - 通常のHTMLスクロール */
+body[data-view="stats"] {
+    overflow: auto;
+    height: auto;
+    position: static;
+}
+
+body[data-view="stats"] #app {
+    height: auto;
+    overflow: visible;
+}
+
+body[data-view="stats"] .app-main {
+    height: auto;
+    overflow: visible;
+}
+
+body[data-view="stats"] .board-container {
+    overflow: visible;
+    height: auto;
+}
+
 /* Calendar view - 通常のHTMLスクロール */
 body[data-view="calendar"] {
     overflow: auto;
@@ -2625,6 +2647,22 @@ body[data-view="calendar"] .board-container {
         overflow: visible;
     }
     
+    /* Stats view - 通常スクロール（モバイル） */
+    body[data-view="stats"] {
+        position: static;
+        overflow: auto;
+    }
+    
+    body[data-view="stats"] #app {
+        height: auto;
+        overflow: visible;
+    }
+    
+    body[data-view="stats"] .app-main {
+        height: auto;
+        overflow: visible;
+    }
+    
     /* Modal - Apple Sheet Style（改善版） */
     .modal-overlay {
         padding: 0;
@@ -3391,8 +3429,6 @@ body[data-view="calendar"] .board-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 32px 24px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .dashboard-cards {
@@ -3567,6 +3603,8 @@ body[data-view="calendar"] .board-container {
 @media (max-width: 768px) {
     .dashboard {
         padding: 20px 16px;
+        /* 下部固定タブメニューにかぶらないよう余白 */
+        padding-bottom: calc(70px + env(safe-area-inset-bottom));
     }
     
     .dashboard-cards {
@@ -4111,6 +4149,8 @@ body[data-view="calendar"] .board-container {
 @media (max-width: 768px) {
     .calendar-view {
         padding: var(--spacing-sm);
+        /* 下部固定タブメニューにかぶらないよう余白 */
+        padding-bottom: calc(70px + env(safe-area-inset-bottom));
     }
 
     /* スマホ時はグリッド表示を隠して縦長リストに切り替え */
