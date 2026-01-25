@@ -922,8 +922,8 @@ body[data-view="calendar"] .board-container {
 /* Calendar view needs vertical scroll */
 .board-container:has(.calendar-view) {
     overflow-y: auto;
-    height: auto;
-    min-height: 100%;
+    overflow-x: hidden;
+    height: 100%;
 }
 
 .board-column {
@@ -3892,7 +3892,9 @@ body[data-view="calendar"] .board-container {
 }
 
 .calendar-day {
+    height: 120px;
     min-height: 120px;
+    max-height: 120px;
     padding: var(--spacing-sm);
     border-right: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
@@ -3901,6 +3903,7 @@ body[data-view="calendar"] .board-container {
     display: flex;
     flex-direction: column;
     background: var(--color-bg-secondary);
+    overflow: hidden;
 }
 
 .calendar-day:nth-child(7n) {
