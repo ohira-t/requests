@@ -392,20 +392,22 @@ class App {
 
         // Build HTML
         let html = `
-            <button type="button" class="sheet-list-item ${!currentValue ? 'selected' : ''}" data-value="">
-                <span class="sheet-list-item-avatar unassigned">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="8" y1="12" x2="16" y2="12"/>
-                    </svg>
-                </span>
+            <div class="sheet-list-item ${!currentValue ? 'selected' : ''}" data-value="">
+                <div class="sheet-list-item-avatar-wrap">
+                    <span class="sheet-list-item-avatar unassigned">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </span>
+                </div>
                 <div class="sheet-list-item-info">
                     <div class="sheet-list-item-name">未割り当て</div>
                 </div>
                 <svg class="sheet-list-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <polyline points="20 6 9 17 4 12"/>
                 </svg>
-            </button>
+            </div>
         `;
 
         if (filteredUsers.length === 0) {
@@ -452,28 +454,24 @@ class App {
         const displayName = isClient && user.company ? user.company : user.name;
 
         return `
-            <button type="button" class="sheet-list-item ${isSelected ? 'selected' : ''}" data-value="${user.id}">
+            <div class="sheet-list-item ${isSelected ? 'selected' : ''}" data-value="${user.id}">
                 <div class="sheet-list-item-avatar-wrap">
                     <span class="sheet-list-item-avatar ${isClient ? 'client' : 'staff'}">${escapeHtml(initials)}</span>
-                    ${isPinned ? `<span class="pin-badge" title="ピン留め中">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                    </span>` : ''}
+                    ${isPinned ? `<span class="pin-badge"></span>` : ''}
                 </div>
                 <div class="sheet-list-item-info">
                     <div class="sheet-list-item-name">${escapeHtml(displayName)}</div>
                     <div class="sheet-list-item-email">${escapeHtml(user.email)}</div>
                 </div>
-                <button type="button" class="pin-btn-inline ${isPinned ? 'pinned' : ''}" data-user-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                <span class="pin-btn-inline ${isPinned ? 'pinned' : ''}" data-user-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
-                </button>
+                </span>
                 <svg class="sheet-list-item-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <polyline points="20 6 9 17 4 12"/>
                 </svg>
-            </button>
+            </div>
         `;
     }
 
