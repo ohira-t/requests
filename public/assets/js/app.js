@@ -14,8 +14,6 @@ class App {
         this.notifications = [];
         this.unreadCount = 0;
         this.departments = [];
-        this.touchStartY = null;
-        this.touchClone = null;
 
         this.init();
     }
@@ -1973,23 +1971,67 @@ class App {
         btn.classList.add('active');
         list.classList.add('edit-mode');
         
-        // Enable draggable
-        const itemClass = type === 'categories' ? 'category-item' : 
-                          type === 'departments' ? 'department-item' : 
-                          'user-item';
-        list.querySelectorAll(`.${itemClass}`).forEach(item => {
-            item.draggable = true;
-            // Desktop drag events
-            item.addEventListener('dragstart', (e) => this.handleListDragStart(e, type));
-            item.addEventListener('dragend', (e) => this.handleListDragEnd(e, type));
-            item.addEventListener('dragover', (e) => this.handleListDragOver(e));
-            item.addEventListener('dragleave', (e) => this.handleListDragLeave(e));
-            item.addEventListener('drop', (e) => this.handleListDrop(e, type));
+        // Bind move button events
+        this.bindMoveButtons(list, type);
+    }
+    
+    bindMoveButtons(list, type) {
+        // Move up buttons
+        list.querySelectorAll('.move-up-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const item = e.target.closest('[data-id]');
+                if (item) {
+                    this.moveItemUp(item, type);
+                }
+            });
+        });
+        
+        // Move down buttons
+        list.querySelectorAll('.move-down-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const item = e.target.closest('[data-id]');
+                if (item) {
+                    this.moveItemDown(item, type);
+                }
+            });
+        });
+    }
+    
+    moveItemUp(item, type) {
+        const prev = item.previousElementSibling;
+        if (prev && !prev.classList.contains('settings-section-header')) {
+            item.parentNode.insertBefore(item, prev);
+            this.updateMoveButtonStates(item.parentNode);
+        }
+    }
+    
+    moveItemDown(item, type) {
+        const next = item.nextElementSibling;
+        if (next) {
+            item.parentNode.insertBefore(next, item);
+            this.updateMoveButtonStates(item.parentNode);
+        }
+    }
+    
+    updateMoveButtonStates(list) {
+        const items = Array.from(list.querySelectorAll('[data-id]')).filter(
+            item => !item.classList.contains('settings-section-header')
+        );
+        
+        items.forEach((item, index) => {
+            const upBtn = item.querySelector('.move-up-btn');
+            const downBtn = item.querySelector('.move-down-btn');
             
-            // Mobile touch events
-            item.addEventListener('touchstart', (e) => this.handleTouchStart(e, type), { passive: false });
-            item.addEventListener('touchmove', (e) => this.handleTouchMove(e, type), { passive: false });
-            item.addEventListener('touchend', (e) => this.handleTouchEnd(e, type), { passive: false });
+            if (upBtn) {
+                upBtn.disabled = index === 0;
+                upBtn.classList.toggle('disabled', index === 0);
+            }
+            if (downBtn) {
+                downBtn.disabled = index === items.length - 1;
+                downBtn.classList.toggle('disabled', index === items.length - 1);
+            }
         });
     }
     
@@ -2033,161 +2075,16 @@ class App {
             this.showToast('並び替えの保存に失敗しました', 'error');
         }
         
-        // Disable draggable and re-render to clean up event listeners
+        // Re-render to clean up event listeners
         if (type === 'categories') {
             this.renderCategoryList();
+            // タスクボードも更新
+            await this.loadTasks();
         } else if (type === 'departments') {
             this.renderDepartmentList();
         } else {
             this.renderUserList();
         }
-    }
-    
-    // List Drag & Drop
-    handleListDragStart(e, type) {
-        const itemClass = type === 'categories' ? 'category-item' : 
-                          type === 'departments' ? 'department-item' : 
-                          'user-item';
-        this.draggedListItem = e.target.closest(`.${itemClass}`);
-        if (this.draggedListItem) {
-            this.draggedListItem.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
-    }
-    
-    handleListDragEnd(e, type) {
-        if (this.draggedListItem) {
-            this.draggedListItem.classList.remove('dragging');
-            this.draggedListItem = null;
-        }
-        // Remove all drag-over classes
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    }
-    
-    handleListDragOver(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        
-        const target = e.target.closest('.category-item, .department-item, .user-item');
-        if (target && target !== this.draggedListItem) {
-            target.classList.add('drag-over');
-        }
-    }
-    
-    handleListDragLeave(e) {
-        const target = e.target.closest('.category-item, .department-item, .user-item');
-        if (target) {
-            target.classList.remove('drag-over');
-        }
-    }
-    
-    handleListDrop(e, type) {
-        e.preventDefault();
-        
-        const itemClass = type === 'categories' ? 'category-item' : 
-                          type === 'departments' ? 'department-item' : 
-                          'user-item';
-        const target = e.target.closest(`.${itemClass}`);
-        if (!target || !this.draggedListItem || target === this.draggedListItem) return;
-        
-        target.classList.remove('drag-over');
-        
-        const list = target.parentNode;
-        const items = Array.from(list.children);
-        const draggedIndex = items.indexOf(this.draggedListItem);
-        const targetIndex = items.indexOf(target);
-        
-        if (draggedIndex < targetIndex) {
-            list.insertBefore(this.draggedListItem, target.nextSibling);
-        } else {
-            list.insertBefore(this.draggedListItem, target);
-        }
-    }
-    
-    // Touch events for mobile
-    handleTouchStart(e, type) {
-        const itemClass = type === 'categories' ? 'category-item' : 
-                          type === 'departments' ? 'department-item' : 
-                          'user-item';
-        this.draggedListItem = e.target.closest(`.${itemClass}`);
-        if (!this.draggedListItem) return;
-        
-        this.touchStartY = e.touches[0].clientY;
-        this.draggedListItem.classList.add('dragging');
-        
-        // Create a clone for visual feedback
-        this.touchClone = this.draggedListItem.cloneNode(true);
-        this.touchClone.style.position = 'fixed';
-        this.touchClone.style.left = this.draggedListItem.getBoundingClientRect().left + 'px';
-        this.touchClone.style.top = e.touches[0].clientY + 'px';
-        this.touchClone.style.width = this.draggedListItem.offsetWidth + 'px';
-        this.touchClone.style.opacity = '0.8';
-        this.touchClone.style.zIndex = '10000';
-        this.touchClone.style.pointerEvents = 'none';
-        document.body.appendChild(this.touchClone);
-    }
-    
-    handleTouchMove(e, type) {
-        if (!this.draggedListItem) return;
-        e.preventDefault();
-        
-        const touch = e.touches[0];
-        const currentY = touch.clientY;
-        
-        // Move the clone
-        if (this.touchClone) {
-            this.touchClone.style.top = currentY + 'px';
-        }
-        
-        // Find the item under the touch point
-        const itemClass = type === 'categories' ? 'category-item' : 
-                          type === 'departments' ? 'department-item' : 
-                          'user-item';
-        const list = this.draggedListItem.parentNode;
-        const items = Array.from(list.querySelectorAll(`.${itemClass}`));
-        
-        // Remove all drag-over classes
-        items.forEach(item => item.classList.remove('drag-over'));
-        
-        // Find target item
-        let targetItem = null;
-        for (const item of items) {
-            if (item === this.draggedListItem) continue;
-            const rect = item.getBoundingClientRect();
-            if (currentY >= rect.top && currentY <= rect.bottom) {
-                targetItem = item;
-                break;
-            }
-        }
-        
-        if (targetItem) {
-            targetItem.classList.add('drag-over');
-            const draggedIndex = items.indexOf(this.draggedListItem);
-            const targetIndex = items.indexOf(targetItem);
-            
-            if (draggedIndex < targetIndex) {
-                list.insertBefore(this.draggedListItem, targetItem.nextSibling);
-            } else {
-                list.insertBefore(this.draggedListItem, targetItem);
-            }
-        }
-    }
-    
-    handleTouchEnd(e, type) {
-        if (!this.draggedListItem) return;
-        
-        // Clean up
-        this.draggedListItem.classList.remove('dragging');
-        if (this.touchClone) {
-            this.touchClone.remove();
-            this.touchClone = null;
-        }
-        
-        // Remove all drag-over classes
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        
-        this.draggedListItem = null;
-        this.touchStartY = null;
     }
 
     openSettingsModal() {
@@ -2247,15 +2144,20 @@ class App {
             return;
         }
 
-        container.innerHTML = filteredCategories.map(cat => `
+        container.innerHTML = filteredCategories.map((cat, index) => `
             <div class="category-item" data-id="${cat.id}">
-                <span class="drag-handle">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="3" y1="12" x2="21" y2="12"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <line x1="3" y1="18" x2="21" y2="18"/>
-                    </svg>
-                </span>
+                <div class="move-buttons">
+                    <button class="move-btn move-up-btn ${index === 0 ? 'disabled' : ''}" title="上に移動" ${index === 0 ? 'disabled' : ''}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                    </button>
+                    <button class="move-btn move-down-btn ${index === filteredCategories.length - 1 ? 'disabled' : ''}" title="下に移動" ${index === filteredCategories.length - 1 ? 'disabled' : ''}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                </div>
                 <span class="color-dot" style="background: ${cat.color}"></span>
                 <span class="name">${escapeHtml(cat.name)}</span>
                 <div class="item-actions">
@@ -2694,12 +2596,18 @@ class App {
 
         return `
             <div class="user-item" data-id="${user.id}">
-                <span class="drag-handle">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="4" y1="8" x2="20" y2="8"/>
-                        <line x1="4" y1="16" x2="20" y2="16"/>
-                    </svg>
-                </span>
+                <div class="move-buttons">
+                    <button class="move-btn move-up-btn" title="上に移動">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                    </button>
+                    <button class="move-btn move-down-btn" title="下に移動">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                </div>
                 <span class="user-avatar-sm ${isClient ? 'client' : 'staff'}">${initials}</span>
                 <div class="user-info">
                     <div class="name">${escapeHtml(displayName)}</div>
@@ -2877,12 +2785,18 @@ class App {
     renderDepartmentItem(dept, isPinned) {
         return `
             <div class="department-item" data-id="${dept.id}">
-                <span class="drag-handle">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="4" y1="8" x2="20" y2="8"/>
-                        <line x1="4" y1="16" x2="20" y2="16"/>
-                    </svg>
-                </span>
+                <div class="move-buttons">
+                    <button class="move-btn move-up-btn" title="上に移動">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="18 15 12 9 6 15"/>
+                        </svg>
+                    </button>
+                    <button class="move-btn move-down-btn" title="下に移動">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                </div>
                 <span class="color-dot" style="background: ${dept.color}"></span>
                 <span class="name">${escapeHtml(dept.name)}</span>
                 <span class="count">${dept.user_count || 0}人</span>

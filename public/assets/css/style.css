@@ -1862,24 +1862,44 @@ body[data-view="calendar"] .board-container {
     background: rgba(0, 122, 255, 0.15);
 }
 
-/* Drag Handle */
-.drag-handle {
+/* Move Buttons (Apple-style up/down arrows) */
+.move-buttons {
     display: none;
-    width: 24px;
-    height: 24px;
-    color: var(--color-text-disabled);
-    cursor: grab;
+    flex-direction: column;
+    gap: 2px;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
 }
 
-.drag-handle:active {
-    cursor: grabbing;
+.move-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.move-btn:hover:not(.disabled) {
+    background: var(--color-primary);
+    color: white;
+}
+
+.move-btn:active:not(.disabled) {
+    transform: scale(0.95);
+}
+
+.move-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
 /* Edit Mode */
-.edit-mode .drag-handle {
+.edit-mode .move-buttons {
     display: flex;
 }
 
@@ -1887,28 +1907,8 @@ body[data-view="calendar"] .board-container {
     display: none;
 }
 
-.edit-mode .department-item,
-.edit-mode .user-item {
-    cursor: grab;
-    transition: all var(--transition-fast);
-}
-
-.edit-mode .department-item:active,
-.edit-mode .user-item:active {
-    cursor: grabbing;
-}
-
-.edit-mode .category-item.dragging,
-.edit-mode .department-item.dragging,
-.edit-mode .user-item.dragging {
-    opacity: 0.5;
-    background: var(--color-bg-tertiary);
-}
-
-.edit-mode .category-item.drag-over,
-.edit-mode .department-item.drag-over,
-.edit-mode .user-item.drag-over {
-    border-top: 2px solid var(--color-primary);
+.edit-mode .pin-btn {
+    display: none;
 }
 
 /* Delete button in edit mode */
