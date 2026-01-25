@@ -246,6 +246,30 @@ class App {
         }
     }
 
+    updateAssigneeSegmentUI() {
+        const sheet = document.getElementById('assignee-sheet');
+        const segmentBtns = sheet?.querySelectorAll('.sheet-segment .segment-btn');
+        const segmentContainer = sheet?.querySelector('.sheet-segment');
+        
+        if (segmentBtns) {
+            segmentBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === this.assigneeFilterType);
+            });
+        }
+        
+        // 依頼した課題/クライアント別タブではセグメント切り替えを非表示
+        if (segmentContainer) {
+            if (this.currentView === 'requested' || this.currentView === 'clients') {
+                segmentContainer.style.display = 'none';
+            } else {
+                segmentContainer.style.display = '';
+            }
+        }
+        
+        this.updateAssigneeAddButtonText();
+        this.renderAssigneeList();
+    }
+
     async addUserFromSheet() {
         const isClient = this.assigneeFilterType === 'client';
         const name = prompt(isClient ? 'クライアント名（会社名）を入力:' : 'スタッフ名を入力:');
@@ -1657,6 +1681,16 @@ class App {
         form.reset();
         document.getElementById('task-id').value = task?.id || '';
         title.textContent = task ? 'タスクを編集' : '新規タスク';
+
+        // ビューに応じて担当者フィルターを設定
+        if (this.currentView === 'clients') {
+            this.assigneeFilterType = 'client';
+        } else if (this.currentView === 'requested') {
+            this.assigneeFilterType = 'staff';
+        } else {
+            this.assigneeFilterType = 'staff'; // デフォルト
+        }
+        this.updateAssigneeSegmentUI();
 
         // Reset assignee select
         this.selectAssignee('');
