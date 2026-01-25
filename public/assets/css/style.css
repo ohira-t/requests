@@ -2631,7 +2631,8 @@ body[data-view="calendar"] .board-container {
     }
     
     .modal-body {
-        max-height: calc(100vh - 200px);
+        flex: 1;
+        min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         /* スクロール領域を明示 */
@@ -2642,6 +2643,9 @@ body[data-view="calendar"] .board-container {
         padding: var(--spacing-md) var(--spacing-xl);
         padding-bottom: calc(var(--spacing-lg) + env(safe-area-inset-bottom));
         flex-shrink: 0;
+        /* フッターを常に表示 */
+        position: relative;
+        z-index: 1;
     }
     
     /* グラバーを目立たせる */
