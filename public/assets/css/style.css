@@ -485,7 +485,7 @@ select.input:focus {
 }
 
 .btn-danger {
-    background: var(--color-error);
+    background: var(--color-destructive);
     color: white;
 }
 
