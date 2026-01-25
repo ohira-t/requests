@@ -3955,7 +3955,7 @@ class App {
             btn.style.opacity = '0.7';
             
             // Get CSV data from API (use API base URL for subdirectory support)
-            const response = await fetch(`${this.api.baseUrl}/tasks/export`, {
+            const response = await fetch(`${api.baseUrl}/tasks/export`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
