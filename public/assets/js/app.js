@@ -100,6 +100,10 @@ class App {
             e.stopPropagation();
             this.toggleSortMenu();
         });
+        document.getElementById('sort-header-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSortHeaderMenu();
+        });
         document.querySelectorAll('.sort-option').forEach(option => {
             option.addEventListener('click', () => this.changeSortOrder(option.dataset.sort));
         });
@@ -1510,6 +1514,30 @@ class App {
             setTimeout(() => document.addEventListener('click', closeHandler), 0);
         }
     }
+
+    toggleSortHeaderMenu() {
+        const menu = document.getElementById('sort-header-menu');
+        
+        if (!menu) return;
+        
+        const isVisible = menu.style.display === 'block';
+        
+        if (isVisible) {
+            menu.style.display = 'none';
+        } else {
+            menu.style.display = 'block';
+            
+            // Close when clicking outside
+            const closeHandler = (e) => {
+                const wrapper = document.querySelector('.sort-header-wrapper');
+                if (wrapper && !wrapper.contains(e.target)) {
+                    menu.style.display = 'none';
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', closeHandler), 0);
+        }
+    }
     
     changeSortOrder(sortOrder) {
         this.sortOrder = sortOrder;
@@ -1529,8 +1557,10 @@ class App {
             option.classList.toggle('active', option.dataset.sort === sortOrder);
         });
         
-        // Close menu
+        // Close menus
         document.getElementById('sort-bar')?.classList.remove('open');
+        const headerMenu = document.getElementById('sort-header-menu');
+        if (headerMenu) headerMenu.style.display = 'none';
         
         // Re-render board
         this.renderBoard();

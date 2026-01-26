@@ -237,6 +237,42 @@
                         <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
                     </button>
                     
+                    <div class="sort-header-wrapper">
+                        <button class="icon-btn sort-header-btn" id="sort-header-btn" title="並び替え">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="4" y1="6" x2="16" y2="6"/>
+                                <line x1="4" y1="12" x2="12" y2="12"/>
+                                <line x1="4" y1="18" x2="8" y2="18"/>
+                            </svg>
+                        </button>
+                        <div class="sort-header-menu" id="sort-header-menu" style="display: none;">
+                            <button class="sort-option active" data-sort="due">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>期限順</span>
+                            </button>
+                            <button class="sort-option" data-sort="priority">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>優先度順</span>
+                            </button>
+                            <button class="sort-option" data-sort="created">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>作成日順</span>
+                            </button>
+                            <button class="sort-option" data-sort="manual">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>手動</span>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <button class="icon-btn" id="settings-btn" title="設定">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="3"/>

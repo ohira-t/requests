@@ -890,8 +890,58 @@ a.dropdown-item {
     color: var(--color-primary);
 }
 
-/* Mobile Sort Bar - Apple style */
+/* Header Sort - Apple style */
+.sort-header-wrapper {
+    position: relative;
+}
+
+.sort-header-btn {
+    position: relative;
+}
+
+.sort-header-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 0 1px rgba(0, 0, 0, 0.1);
+    padding: var(--spacing-xs);
+    z-index: 1000;
+    animation: fadeInDown 0.2s ease;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Desktop: Hide old sort bar, show header sort */
+@media (min-width: 769px) {
+    .sort-bar {
+        display: none;
+    }
+}
+
+/* Mobile: Hide header sort on tasks view only, show old sort bar */
 @media (max-width: 768px) {
+    body[data-view="tasks"] .sort-header-wrapper {
+        display: none;
+    }
+
+    body[data-view="tasks"] .sort-bar {
+        display: flex;
+    }
+
     .sort-bar {
         padding: var(--spacing-md) var(--spacing-lg);
     }
@@ -899,7 +949,7 @@ a.dropdown-item {
     .sort-btn {
         padding: var(--spacing-sm) var(--spacing-md);
         font-size: var(--font-size-base);
-        min-height: 44px; /* Apple recommended tap target */
+        min-height: 44px;
         gap: var(--spacing-sm);
     }
 
@@ -923,12 +973,19 @@ a.dropdown-item {
     .sort-option {
         padding: var(--spacing-md);
         font-size: var(--font-size-base);
-        min-height: 44px; /* Apple recommended tap target */
+        min-height: 44px;
     }
 
     .sort-option svg {
         width: 16px;
         height: 16px;
+    }
+
+    .sort-header-menu {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 200px;
     }
 }
 
