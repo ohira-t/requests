@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Models\Task;
 use App\Utils\Session;
 use App\Utils\Response;
 use App\Utils\Validator;
@@ -203,6 +204,9 @@ class AuthController
             Session::start();
             Session::login(User::toSafeArray($user));
             
+            // Create sample tasks for new user
+            $this->createSampleTasks($userId);
+            
             Response::success([
                 'message' => 'アカウントを作成しました',
                 'user' => User::toSafeArray($user),
@@ -210,6 +214,54 @@ class AuthController
             ], 201);
         } catch (\Exception $e) {
             Response::error('REGISTRATION_FAILED', 'アカウントの作成に失敗しました', 500);
+        }
+    }
+    
+    /**
+     * 新規ユーザー向けのサンプルタスクを作成
+     */
+    private function createSampleTasks(int $userId): void
+    {
+        $today = date('Y-m-d');
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        $nextWeek = date('Y-m-d', strtotime('+7 days'));
+        
+        $sampleTasks = [
+            [
+                'title' => 'ようこそ！Requestsの使い方',
+                'description' => "このアプリでタスクを管理できます。\n\n【基本操作】\n• 右下の＋ボタンで新しいタスクを追加\n• タスクをタップして詳細を編集\n• チェックボックスで完了\n\nこのタスクを完了して、使い方をマスターしましょう！",
+                'priority' => 'high',
+                'due_date' => $today,
+            ],
+            [
+                'title' => '完了してみましょう',
+                'description' => "タスクの左側にあるチェックボックスをタップすると、タスクを完了できます。\n\n完了したタスクは「完了」タブで確認できます。",
+                'priority' => 'low',
+                'due_date' => $tomorrow,
+            ],
+            [
+                'title' => '優先度を試してみましょう',
+                'description' => "タスクには4つの優先度があります：\n• 緊急（赤）\n• 高（オレンジ）\n• 中（青）\n• 低（グレー）\n\nこのタスクをタップして、優先度を変更してみてください。",
+                'priority' => 'medium',
+                'due_date' => $nextWeek,
+            ],
+        ];
+        
+        foreach ($sampleTasks as $task) {
+            try {
+                Task::create([
+                    'title' => $task['title'],
+                    'description' => $task['description'],
+                    'priority' => $task['priority'],
+                    'due_date' => $task['due_date'],
+                    'creator_id' => $userId,
+                    'assignee_id' => $userId, // 自分自身に割り当て
+                    'status' => 'todo',
+                ]);
+            } catch (\Exception $e) {
+                // サンプルタスク作成失敗は無視（登録自体は成功させる）
+                error_log('Failed to create sample task: ' . $e->getMessage());
+            }
         }
     }
 }
