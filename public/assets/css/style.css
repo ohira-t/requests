@@ -928,21 +928,22 @@ a.dropdown-item {
 /* Desktop: Hide old sort bar, show header sort */
 @media (min-width: 769px) {
     .sort-bar {
-        display: none;
+        display: none !important;
+    }
+    
+    .sort-header-wrapper {
+        display: block;
     }
 }
 
-/* Mobile: Hide header sort on tasks view only, show old sort bar */
+/* Mobile: Show old sort bar, hide header sort */
 @media (max-width: 768px) {
-    body[data-view="tasks"] .sort-header-wrapper {
-        display: none;
-    }
-
-    body[data-view="tasks"] .sort-bar {
-        display: flex;
+    .sort-header-wrapper {
+        display: none !important;
     }
 
     .sort-bar {
+        display: flex;
         padding: var(--spacing-md) var(--spacing-lg);
     }
 
@@ -980,19 +981,14 @@ a.dropdown-item {
         width: 16px;
         height: 16px;
     }
-
-    .sort-header-menu {
-        right: auto;
-        left: 50%;
-        transform: translateX(-50%);
-        min-width: 200px;
-    }
 }
 
-/* Hide sort bar for stats and calendar views */
+/* Hide sort controls for stats and calendar views */
 body[data-view="stats"] .sort-bar,
-body[data-view="calendar"] .sort-bar {
-    display: none;
+body[data-view="calendar"] .sort-bar,
+body[data-view="stats"] .sort-header-wrapper,
+body[data-view="calendar"] .sort-header-wrapper {
+    display: none !important;
 }
 
 /* Stats view - 通常のHTMLスクロール */
