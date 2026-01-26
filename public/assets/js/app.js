@@ -95,14 +95,10 @@ class App {
             tab.addEventListener('click', () => this.switchView(tab.dataset.view));
         });
         
-        // Sort controls
-        document.getElementById('sort-btn')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleSortMenu();
-        });
+        // Sort controls (header)
         document.getElementById('sort-header-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.toggleSortHeaderMenu();
+            this.toggleSortMenu();
         });
         document.querySelectorAll('.sort-option').forEach(option => {
             option.addEventListener('click', () => this.changeSortOrder(option.dataset.sort));
@@ -1500,24 +1496,7 @@ class App {
 
     // Sort menu controls
     toggleSortMenu() {
-        const sortBar = document.getElementById('sort-bar');
-        sortBar?.classList.toggle('open');
-        
-        // Close when clicking outside
-        if (sortBar?.classList.contains('open')) {
-            const closeHandler = (e) => {
-                if (!sortBar.contains(e.target)) {
-                    sortBar.classList.remove('open');
-                    document.removeEventListener('click', closeHandler);
-                }
-            };
-            setTimeout(() => document.addEventListener('click', closeHandler), 0);
-        }
-    }
-
-    toggleSortHeaderMenu() {
         const menu = document.getElementById('sort-header-menu');
-        
         if (!menu) return;
         
         const isVisible = menu.style.display === 'block';
@@ -1542,25 +1521,14 @@ class App {
     changeSortOrder(sortOrder) {
         this.sortOrder = sortOrder;
         
-        // Update UI
-        const sortLabel = document.getElementById('sort-label');
-        const sortLabels = {
-            'due': '期限順',
-            'priority': '優先度順',
-            'created': '作成日順',
-            'manual': '手動'
-        };
-        if (sortLabel) sortLabel.textContent = sortLabels[sortOrder] || '期限順';
-        
         // Update active state
         document.querySelectorAll('.sort-option').forEach(option => {
             option.classList.toggle('active', option.dataset.sort === sortOrder);
         });
         
-        // Close menus
-        document.getElementById('sort-bar')?.classList.remove('open');
-        const headerMenu = document.getElementById('sort-header-menu');
-        if (headerMenu) headerMenu.style.display = 'none';
+        // Close menu
+        const menu = document.getElementById('sort-header-menu');
+        if (menu) menu.style.display = 'none';
         
         // Re-render board
         this.renderBoard();

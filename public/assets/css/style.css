@@ -790,70 +790,38 @@ a.dropdown-item {
 }
 
 /* Sort Bar (Apple-style) */
-.sort-bar {
-    display: flex;
-    align-items: center;
-    padding: var(--spacing-sm) var(--spacing-xl);
-    background: var(--color-bg);
-    border-bottom: 1px solid var(--color-border-light);
-    flex-shrink: 0;
+/* ========================================
+   Header Sort Menu
+======================================== */
+
+.sort-header-wrapper {
     position: relative;
 }
 
-.sort-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--color-text-secondary);
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.sort-btn:hover {
-    color: var(--color-text-primary);
-    background: var(--color-bg-secondary);
-}
-
-.sort-btn svg:first-child {
-    color: var(--color-text-tertiary);
-}
-
-.sort-chevron {
-    transition: transform var(--transition-fast);
-}
-
-.sort-bar.open .sort-chevron {
-    transform: rotate(180deg);
-}
-
-.sort-menu {
+.sort-header-menu {
     position: absolute;
-    top: 100%;
-    left: var(--spacing-xl);
-    min-width: 160px;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
     background: var(--color-bg);
     border-radius: var(--radius-lg);
     box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 4px 12px rgba(0, 0, 0, 0.15),
         0 0 1px rgba(0, 0, 0, 0.1);
     padding: var(--spacing-xs);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: all var(--transition-fast);
-    z-index: 100;
+    z-index: 1000;
+    animation: sortMenuFadeIn 0.15s ease;
 }
 
-.sort-bar.open .sort-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+@keyframes sortMenuFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .sort-option {
@@ -871,6 +839,7 @@ a.dropdown-item {
     cursor: pointer;
     transition: background var(--transition-fast);
     text-align: left;
+    min-height: 40px;
 }
 
 .sort-option:hover {
@@ -890,85 +859,10 @@ a.dropdown-item {
     color: var(--color-primary);
 }
 
-/* Header Sort - Apple style */
-.sort-header-wrapper {
-    position: relative;
-}
-
-.sort-header-btn {
-    position: relative;
-}
-
-.sort-header-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    min-width: 180px;
-    background: var(--color-bg);
-    border-radius: var(--radius-lg);
-    box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.08),
-        0 0 1px rgba(0, 0, 0, 0.1);
-    padding: var(--spacing-xs);
-    z-index: 1000;
-    animation: fadeInDown 0.2s ease;
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Desktop: Hide old sort bar, show header sort */
-@media (min-width: 769px) {
-    .sort-bar {
-        display: none !important;
-    }
-    
-    .sort-header-wrapper {
-        display: block;
-    }
-}
-
-/* Mobile: Show old sort bar, hide header sort */
+/* Mobile adjustments */
 @media (max-width: 768px) {
-    .sort-header-wrapper {
-        display: none !important;
-    }
-
-    .sort-bar {
-        display: flex;
-        padding: var(--spacing-md) var(--spacing-lg);
-    }
-
-    .sort-btn {
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: var(--font-size-base);
-        min-height: 44px;
-        gap: var(--spacing-sm);
-    }
-
-    .sort-btn svg:first-child {
-        width: 16px;
-        height: 16px;
-    }
-
-    .sort-btn .sort-chevron {
-        width: 12px;
-        height: 12px;
-    }
-
-    .sort-menu {
-        left: var(--spacing-lg);
-        right: var(--spacing-lg);
-        min-width: auto;
-        width: calc(100% - var(--spacing-lg) * 2);
+    .sort-header-menu {
+        min-width: 200px;
     }
 
     .sort-option {
@@ -983,12 +877,10 @@ a.dropdown-item {
     }
 }
 
-/* Hide sort controls for stats and calendar views */
-body[data-view="stats"] .sort-bar,
-body[data-view="calendar"] .sort-bar,
+/* Hide sort for stats and calendar views */
 body[data-view="stats"] .sort-header-wrapper,
 body[data-view="calendar"] .sort-header-wrapper {
-    display: none !important;
+    display: none;
 }
 
 /* Stats view - 通常のHTMLスクロール */
