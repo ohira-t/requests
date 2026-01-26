@@ -270,38 +270,17 @@ class App {
         this.renderAssigneeList();
     }
 
-    async addUserFromSheet() {
+    addUserFromSheet() {
         const isClient = this.assigneeFilterType === 'client';
-        const name = prompt(isClient ? 'クライアント名（会社名）を入力:' : 'スタッフ名を入力:');
-        if (!name) return;
-
-        const email = prompt('メールアドレスを入力:');
-        if (!email) return;
-
-        const password = prompt('初期パスワードを入力:');
-        if (!password) return;
-
-        try {
-            const newUser = await api.createUser({
-                name,
-                email,
-                password,
-                role: isClient ? 'client' : 'staff',
-                type: isClient ? 'client' : 'internal',
-                company: isClient ? name : null
-            });
-            await this.loadUsers();
-            this.renderAssigneeList();
-
-            // Auto-select the newly created user
-            if (newUser?.id) {
-                this.selectAssignee(newUser.id);
-            }
-
-            this.showToast(isClient ? 'クライアントを追加しました' : 'スタッフを追加しました', 'success');
-        } catch (error) {
-            this.showToast(error.message, 'error');
-        }
+        
+        // 担当者シートから追加する場合のフラグを設定
+        this.addingUserFromSheet = true;
+        
+        // ユーザー編集モーダルを新規モードで開く
+        this.openEditUserModal({
+            role: isClient ? 'client' : 'staff',
+            company: ''
+        }, true);
     }
 
     openAssigneeSheet() {
@@ -2492,12 +2471,20 @@ class App {
         submitBtn.disabled = true;
 
         try {
-            await api.createUser(data);
+            const newUser = await api.createUser(data);
             await this.loadUsers();
             this.renderUserList();
             this.closeUserEditModal();
+            
             const isClient = data.role === 'client';
             this.showToast(isClient ? 'クライアントを追加しました' : 'ユーザーを追加しました', 'success');
+            
+            // 担当者シートから追加した場合、自動選択してリストを更新
+            if (this.addingUserFromSheet && newUser?.id) {
+                this.selectAssignee(newUser.id);
+                this.renderAssigneeList();
+            }
+            this.addingUserFromSheet = false;
         } catch (error) {
             this.showToast(error.message, 'error');
         } finally {
