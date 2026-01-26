@@ -2800,7 +2800,7 @@ body[data-view="calendar"] .board-container {
     
     .modal {
         max-width: 100%;
-        max-height: calc(100vh - var(--spacing-xl));
+        max-height: calc(100vh - env(safe-area-inset-top) - var(--spacing-xl));
         margin: 0;
         border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         animation: slideUpMobile 0.35s cubic-bezier(0.32, 0.72, 0, 1);
@@ -2811,9 +2811,17 @@ body[data-view="calendar"] .board-container {
         right: 0;
     }
     
+    .settings-modal {
+        max-height: calc(100vh - env(safe-area-inset-top) - var(--spacing-2xl));
+    }
+    
     .modal-header {
         padding: var(--spacing-lg) var(--spacing-xl);
         flex-shrink: 0;
+        /* ヘッダーが見切れないように確保 */
+        min-height: 56px;
+        position: relative;
+        z-index: 10;
     }
     
     .modal-body {
