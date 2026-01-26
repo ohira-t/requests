@@ -72,6 +72,9 @@ class App {
         // Deactivate account
         document.getElementById('deactivate-account-btn')?.addEventListener('click', () => this.openDeactivateAccountModal());
 
+        // Manual
+        document.getElementById('manual-btn')?.addEventListener('click', () => this.openManualModal());
+
         // Notifications
         document.getElementById('notifications-btn')?.addEventListener('click', () => this.toggleNotificationsPanel());
         document.getElementById('notifications-close')?.addEventListener('click', () => this.closeNotificationsPanel());
@@ -143,6 +146,7 @@ class App {
         this.initChangePasswordModal();
         this.initDeactivateAccountModal();
         this.initAnnouncementModal();
+        this.initManualModal();
         
         // Search clear buttons
         const deptSearchInput = document.getElementById('department-search');
@@ -3797,6 +3801,66 @@ class App {
             submitBtn.querySelector('.btn-text').style.display = 'inline';
             submitBtn.querySelector('.btn-loading').style.display = 'none';
             submitBtn.disabled = false;
+        }
+    }
+
+    // Manual Modal
+    initManualModal() {
+        const modal = document.getElementById('manual-modal');
+        const closeBtn = document.getElementById('manual-close');
+        const tabs = document.querySelectorAll('.manual-tab');
+
+        closeBtn?.addEventListener('click', () => this.closeManualModal());
+
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeManualModal();
+        });
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                document.querySelectorAll('.manual-tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`manual-${targetTab}`).classList.add('active');
+            });
+        });
+    }
+
+    openManualModal() {
+        const modal = document.getElementById('manual-modal');
+        const userDropdown = document.getElementById('user-dropdown');
+        
+        // Close user menu
+        if (userDropdown) {
+            userDropdown.style.display = 'none';
+        }
+        
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Reset to first tab
+            document.querySelectorAll('.manual-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.manual-tab[data-tab="quick"]')?.classList.add('active');
+            
+            document.querySelectorAll('.manual-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('manual-quick')?.classList.add('active');
+        }
+    }
+
+    closeManualModal() {
+        const modal = document.getElementById('manual-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
         }
     }
 

@@ -4996,3 +4996,290 @@ body[data-view="calendar"] .board-container {
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-sm);
 }
+
+/* ========================================
+   Manual Modal
+======================================== */
+
+.manual-modal {
+    max-width: 800px;
+    max-height: 85vh;
+}
+
+.manual-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.manual-tab {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.manual-tab:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.manual-tab.active {
+    background: var(--theme-color);
+    color: white;
+}
+
+.manual-content {
+    padding: 0;
+    overflow-y: auto;
+    max-height: calc(85vh - 180px);
+}
+
+.manual-tab-content {
+    display: none;
+    padding: var(--spacing-2xl) var(--spacing-xl);
+}
+
+.manual-tab-content.active {
+    display: block;
+}
+
+.manual-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.manual-section:last-child {
+    margin-bottom: 0;
+}
+
+.manual-section h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+    line-height: 1.2;
+}
+
+.manual-section h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-border-light);
+}
+
+.manual-section h2:first-child {
+    margin-top: 0;
+}
+
+.manual-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: var(--spacing-lg) 0 var(--spacing-sm) 0;
+}
+
+.manual-section h4 {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: var(--spacing-md) 0 var(--spacing-xs) 0;
+}
+
+.manual-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.manual-section p {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    margin: var(--spacing-sm) 0;
+}
+
+.manual-section ul,
+.manual-section ol {
+    margin: var(--spacing-md) 0;
+    padding-left: var(--spacing-xl);
+}
+
+.manual-section li {
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    margin: var(--spacing-xs) 0;
+}
+
+.manual-section strong {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.manual-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(0, 122, 255, 0.08);
+    border-left: 3px solid var(--theme-color);
+    border-radius: var(--radius-md);
+    margin: var(--spacing-md) 0;
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+}
+
+.manual-note svg {
+    flex-shrink: 0;
+    color: var(--theme-color);
+    margin-top: 2px;
+}
+
+.manual-flow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    margin: var(--spacing-md) 0;
+    font-size: var(--font-size-sm);
+    flex-wrap: wrap;
+}
+
+.manual-flow span:first-child {
+    font-weight: 600;
+}
+
+.manual-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--spacing-md) 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border-light);
+}
+
+.manual-table thead {
+    background: var(--color-bg-secondary);
+}
+
+.manual-table th {
+    padding: var(--spacing-md);
+    text-align: left;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    border-bottom: 2px solid var(--color-border-light);
+}
+
+.manual-table td {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.manual-table tr:last-child td {
+    border-bottom: none;
+}
+
+.manual-table tbody tr:hover {
+    background: var(--color-bg-secondary);
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.priority-badge.urgent {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+}
+
+.priority-badge.high {
+    background: rgba(255, 149, 0, 0.1);
+    color: #FF9500;
+}
+
+.priority-badge.medium {
+    background: rgba(0, 122, 255, 0.1);
+    color: #007AFF;
+}
+
+.priority-badge.low {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+}
+
+.manual-faq {
+    padding: var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    margin: var(--spacing-md) 0;
+}
+
+.manual-faq h4 {
+    margin-top: 0;
+    color: var(--theme-color);
+}
+
+.manual-faq p {
+    margin-bottom: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .manual-modal {
+        max-height: calc(100vh - 80px);
+    }
+
+    .manual-content {
+        max-height: calc(100vh - 240px);
+    }
+
+    .manual-tab-content {
+        padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .manual-section h1 {
+        font-size: 24px;
+    }
+
+    .manual-section h2 {
+        font-size: 20px;
+    }
+
+    .manual-section h3 {
+        font-size: 16px;
+    }
+
+    .manual-flow {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .manual-table {
+        font-size: var(--font-size-sm);
+    }
+
+    .manual-table th,
+    .manual-table td {
+        padding: var(--spacing-sm);
+    }
+}
