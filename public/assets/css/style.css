@@ -1804,6 +1804,7 @@ body[data-view="calendar"] .board-container {
     padding: var(--spacing-md) var(--spacing-lg);
     min-height: 48px;
     border: none;
+    border-radius: 0;
     background: transparent;
     font-family: var(--font-family);
     font-size: var(--font-size-base);
@@ -1812,6 +1813,16 @@ body[data-view="calendar"] .board-container {
     cursor: pointer;
     position: relative;
     transition: color var(--transition-fast);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.settings-tab:focus {
+    outline: none;
+}
+
+.settings-tab:focus-visible {
+    background: rgba(0, 122, 255, 0.08);
 }
 
 .settings-tab::after {
@@ -2079,9 +2090,7 @@ body[data-view="calendar"] .board-container {
 
 .settings-user-segment {
     display: flex;
-    padding: var(--spacing-md) var(--spacing-xl);
-    border-bottom: 1px solid var(--color-border-light);
-    background: var(--color-bg-secondary);
+    gap: var(--spacing-md);
 }
 
 .settings-user-segment .segment-btn {
@@ -2100,23 +2109,8 @@ body[data-view="calendar"] .board-container {
     white-space: nowrap;
 }
 
-.settings-user-segment .segment-btn::after {
-    content: '';
-    position: absolute;
-    bottom: -13px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: transparent;
-    transition: background var(--transition-fast);
-}
-
 .settings-user-segment .segment-btn.active {
     color: var(--theme-color);
-}
-
-.settings-user-segment .segment-btn.active::after {
-    background: var(--theme-color);
 }
 
 .category-list,
