@@ -3310,8 +3310,7 @@ class App {
             });
         });
         
-        // 初回表示時は今日にスクロール
-        const today = new Date();
+        // 初回表示時は今日にスクロール（today変数は関数冒頭で定義済み）
         const isCurrentMonth = this.calendarDate.getFullYear() === today.getFullYear() &&
                               this.calendarDate.getMonth() === today.getMonth();
         if (isCurrentMonth) {
