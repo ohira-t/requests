@@ -4040,10 +4040,12 @@ body[data-view="calendar"] .board-container {
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    overflow: hidden;
 }
 
 .calendar-day {
     min-height: 100px;
+    min-width: 0; /* グリッドアイテムが縮小可能に */
     padding: var(--spacing-sm);
     border-right: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
@@ -4052,6 +4054,7 @@ body[data-view="calendar"] .board-container {
     display: flex;
     flex-direction: column;
     background: var(--color-bg-secondary);
+    overflow: hidden;
 }
 
 .calendar-day:nth-child(7n) {
@@ -4117,6 +4120,8 @@ body[data-view="calendar"] .board-container {
     gap: 2px;
     flex: 1;
     min-height: 0;
+    min-width: 0; /* 子要素が親幅を超えないように */
+    overflow: hidden;
 }
 
 .calendar-task {
@@ -4128,6 +4133,8 @@ body[data-view="calendar"] .board-container {
     text-overflow: ellipsis;
     cursor: pointer;
     transition: opacity var(--transition-fast);
+    max-width: 100%; /* 親要素の幅を超えない */
+    display: block;
 }
 
 .calendar-task:hover {
