@@ -2692,19 +2692,20 @@ body[data-view="calendar"] .board-container {
     
     .modal {
         max-width: 100%;
-        max-height: calc(100vh - env(safe-area-inset-top) - var(--spacing-xl));
         margin: 0;
         border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         animation: slideUpMobile 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-        /* 位置を固定してぐらつきを防止 */
+        /* 位置を固定 - 上下両方を設定して見切れを防止 */
         position: fixed;
+        top: calc(env(safe-area-inset-top) + var(--spacing-xl));
         bottom: 0;
         left: 0;
         right: 0;
+        max-height: none; /* top/bottom で高さを制御 */
     }
     
     .settings-modal {
-        max-height: calc(100vh - env(safe-area-inset-top) - var(--spacing-2xl));
+        top: calc(env(safe-area-inset-top) + var(--spacing-2xl));
     }
     
     .modal-header {
