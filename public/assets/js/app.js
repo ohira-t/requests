@@ -2717,7 +2717,7 @@ class App {
         });
 
         // Bind pin button events
-        container.querySelectorAll('.pin-btn').forEach(btn => {
+        container.querySelectorAll('.pin-btn-inline').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.togglePinUserSettings(btn.dataset.id);
@@ -2750,18 +2750,21 @@ class App {
                         </svg>
                     </button>
                 </div>
-                <span class="user-avatar-sm ${isClient ? 'client' : 'staff'}">${initials}</span>
+                <div class="user-avatar-wrap">
+                    <span class="user-avatar-sm ${isClient ? 'client' : 'staff'}">${initials}</span>
+                    ${isPinned ? `<span class="pin-badge"></span>` : ''}
+                </div>
                 <div class="user-info">
                     <div class="name">${escapeHtml(displayName)}</div>
                     <div class="email">${escapeHtml(user.email)}</div>
                 </div>
                 ${deptBadge}
                 <span class="role-badge ${roleBadgeClass}">${roleLabel}</span>
-                <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" data-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                <span class="pin-btn-inline ${isPinned ? 'pinned' : ''}" data-id="${user.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
-                </button>
+                </span>
                 <div class="item-actions">
                     <button class="icon-btn edit-user" title="編集">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2916,7 +2919,7 @@ class App {
             });
         });
 
-        container.querySelectorAll('.pin-btn').forEach(btn => {
+        container.querySelectorAll('.pin-btn-inline').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.togglePinDepartment(btn.dataset.id);
@@ -2942,11 +2945,11 @@ class App {
                 <span class="color-dot" style="background: ${dept.color}"></span>
                 <span class="name">${escapeHtml(dept.name)}</span>
                 <span class="count">${dept.user_count || 0}人</span>
-                <button type="button" class="pin-btn ${isPinned ? 'pinned' : ''}" data-id="${dept.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
+                <span class="pin-btn-inline ${isPinned ? 'pinned' : ''}" data-id="${dept.id}" title="${isPinned ? 'ピン留め解除' : 'ピン留め'}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                     </svg>
-                </button>
+                </span>
                 <div class="item-actions">
                     <button class="icon-btn edit-department" title="編集">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -2155,6 +2155,11 @@ body[data-view="calendar"] .board-container {
     font-weight: 500;
 }
 
+.user-item .user-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
 .user-item .user-avatar-sm {
     width: 36px;
     height: 36px;
@@ -2218,6 +2223,29 @@ body[data-view="calendar"] .board-container {
 .user-item .role-badge.client {
     background: rgba(255, 149, 0, 0.1);
     color: #FF9500;
+}
+
+.user-item .pin-btn-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.user-item .pin-btn-inline:hover {
+    background: rgba(255, 214, 10, 0.1);
+    color: #FFD60A;
+}
+
+.user-item .pin-btn-inline.pinned {
+    color: #FFD60A;
 }
 
 /* Empty state for lists */
@@ -4886,8 +4914,10 @@ body[data-view="calendar"] .board-container {
         order: 4;
     }
     
-    .user-item .pin-btn {
-        display: none !important;
+    .user-item .pin-btn-inline {
+        width: 32px;
+        height: 32px;
+        order: 5;
     }
     
     .user-item .item-actions {
