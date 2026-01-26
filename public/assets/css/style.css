@@ -890,6 +890,48 @@ a.dropdown-item {
     color: var(--color-primary);
 }
 
+/* Mobile Sort Bar - Apple style */
+@media (max-width: 768px) {
+    .sort-bar {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+
+    .sort-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-base);
+        min-height: 44px; /* Apple recommended tap target */
+        gap: var(--spacing-sm);
+    }
+
+    .sort-btn svg:first-child {
+        width: 16px;
+        height: 16px;
+    }
+
+    .sort-btn .sort-chevron {
+        width: 12px;
+        height: 12px;
+    }
+
+    .sort-menu {
+        left: var(--spacing-lg);
+        right: var(--spacing-lg);
+        min-width: auto;
+        width: calc(100% - var(--spacing-lg) * 2);
+    }
+
+    .sort-option {
+        padding: var(--spacing-md);
+        font-size: var(--font-size-base);
+        min-height: 44px; /* Apple recommended tap target */
+    }
+
+    .sort-option svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
 /* Hide sort bar for stats and calendar views */
 body[data-view="stats"] .sort-bar,
 body[data-view="calendar"] .sort-bar {
