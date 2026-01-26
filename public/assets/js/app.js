@@ -3285,8 +3285,20 @@ class App {
         });
         
         document.getElementById('calendar-today')?.addEventListener('click', () => {
-            this.calendarDate = new Date();
-            this.loadCalendar();
+            const today = new Date();
+            const isSameMonth = this.calendarDate.getFullYear() === today.getFullYear() &&
+                               this.calendarDate.getMonth() === today.getMonth();
+            
+            if (isSameMonth) {
+                // 同じ月ならスクロールのみ
+                this.scrollToToday();
+            } else {
+                // 異なる月なら移動してからスクロール
+                this.calendarDate = new Date();
+                this.loadCalendar().then(() => {
+                    setTimeout(() => this.scrollToToday(), 100);
+                });
+            }
         });
         
         // Task click handlers (both grid and list views)
@@ -3298,11 +3310,39 @@ class App {
             });
         });
         
-        // Reset scroll position to top-left
-        requestAnimationFrame(() => {
-            container.scrollLeft = 0;
-            container.scrollTop = 0;
-        });
+        // 初回表示時は今日にスクロール
+        const today = new Date();
+        const isCurrentMonth = this.calendarDate.getFullYear() === today.getFullYear() &&
+                              this.calendarDate.getMonth() === today.getMonth();
+        if (isCurrentMonth) {
+            requestAnimationFrame(() => {
+                setTimeout(() => this.scrollToToday(), 50);
+            });
+        }
+    }
+    
+    scrollToToday() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        // スマホのリストビューの場合
+        const listDay = document.querySelector(`.calendar-list-day[data-date="${todayStr}"]`);
+        if (listDay) {
+            listDay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // ヘッダー分のオフセットを考慮
+            setTimeout(() => {
+                const header = document.querySelector('.calendar-header');
+                if (header) {
+                    window.scrollBy(0, -header.offsetHeight - 16);
+                }
+            }, 300);
+            return;
+        }
+        
+        // PCのグリッドビューの場合
+        const gridDay = document.querySelector('.calendar-day.today');
+        if (gridDay) {
+            gridDay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 
     // Requested View with Workload
